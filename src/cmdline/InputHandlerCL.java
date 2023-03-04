@@ -3,13 +3,13 @@ import java.util.ArrayList;
 
 /**
  * {@code InputHandler} is a class containing methods to handle user input.
- * A single instance of a {@code InputHandler} is created in each run of {@link kto} to process user input.
+ * A single instance of a {@code InputHandler} is created in each run of {@link KTOCL} to process user input.
  * 
  * @author Christian Azinn
  * @version 0.3
  * @since 0.1
  */
-public class InputHandler {
+public class InputHandlerCL {
 
     // only instance variable
     private Scanner s;
@@ -19,7 +19,7 @@ public class InputHandler {
      * Constructor for an InputHandler object.
      * Only declares a {@code Scanner} object.
      */
-    public InputHandler() {
+    public InputHandlerCL() {
         s = new Scanner(System.in);
     }
 
@@ -35,7 +35,7 @@ public class InputHandler {
 
 
     /**
-     * Processes the commands within a String of command-line input for further processing by {@link kto}. 
+     * Processes the commands within a String of command-line input for further processing by {@link KTOCL}. 
      * Can process all 1, 2, and 3-context commands.
      * @param input user input from the command line
      * @return an {@code ArrayList<String>} containing the input commands and context
@@ -115,91 +115,91 @@ public class InputHandler {
         /**
          * 1-argument. 
          * Usage: "write"
-         * @see CSVManager#write()
+         * @see CSVManagerCL#write()
          */
         WRITEFILE       ("write"),
 
         /**
          * 1-argument. 
          * Usage: "showkeys" 
-         * @see CSVManager#getKeys()
+         * @see CSVManagerCL#getKeys()
          */
         SHOWKEYS        ("showkeys"),
 
         /**
          * 1-argument. 
          * Usage: "getname" 
-         * @see CSVManager#getF()
+         * @see CSVManagerCL#getF()
          */
         GETFILENAME     ("getname"),
 
         /**
          * 2-argument. 
          * Usage: "read [filename]" 
-         * @see CSVManager#read(String)
+         * @see CSVManagerCL#read(String)
          */
         READFILE        ("read"), 
 
         /**
          * 2-argument. 
          * Usage: "create [filename]" 
-         * @see CSVManager#create(String)
+         * @see CSVManagerCL#create(String)
          */
         CREATEFILE      ("create"),
 
         /**
          * 2-argument. 
          * Usage: "newline [key]" 
-         * @see CSVManager#newLine(String)
+         * @see CSVManagerCL#newLine(String)
          */
         NEWLINE         ("newline"),
 
         /**
          * 2-argument. 
          * Usage: "clear [key]" 
-         * @see CSVManager#clearLine(String)
+         * @see CSVManagerCL#clearLine(String)
          */
         CLEARLINE       ("clear"),
 
         /**
          * 2-argument.
          * Usage: "delline [key]"
-         * @see CSVManager#deleteLine(String)
+         * @see CSVManagerCL#deleteLine(String)
          */
         DELETELINE      ("delline"), 
 
         /**
          * 2-argument. 
          * Usage: "getline [key]" 
-         * @see CSVManager#getLine(String)
+         * @see CSVManagerCL#getLine(String)
          */
         GETLINE         ("getline"), 
         
         /**
          * 3-argument. 
          * Usage: "add "[key]" [information]" 
-         * @see CSVManager#addToLine(String, String)
+         * @see CSVManagerCL#addToLine(String, String)
          */
         ADDTOLINE       ("add"), 
 
         /**
          * 3-argument. 
          * Usage: "del "[key]" [idx]"
-         * @see CSVManager#deleteFromLine(String, int)
+         * @see CSVManagerCL#deleteFromLine(String, int)
          */
         DELETEFROMLINE  ("del"),
         
         /**
          * 3-argument. 
          * Usage: "changekey "[key]" [newkey]" 
-         * @see CSVManager#changeKey(String, String)
+         * @see CSVManagerCL#changeKey(String, String)
          */
         CHANGEKEY       ("changekey"), 
 
         /**
          * 3-argument. 
          * Usage: "copy "[key]" [newkey]"
-         * @see CSVManager#copy(String, String)
+         * @see CSVManagerCL#copy(String, String)
          */
         COPY            ("copy"); // copy "[key]" [new key]
 

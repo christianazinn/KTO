@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"<Unnamed>","l":"InputHandlerCL.Command"},{"p":"<Unnamed>","l":"CSVManagerCL"},{"p":"<Unnamed>","l":"InputHandlerCL"},{"p":"<Unnamed>","l":"KTOCL"}];updateSearchResults();

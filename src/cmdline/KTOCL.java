@@ -1,15 +1,15 @@
 import java.util.ArrayList;
 
 /**
- * {@code kto.java} is the main class of the KTO project.
- * Uses a single instance of {@link CSVManager} and {@link InputHandler} each run to interface with CSV files and handle user input, respectively.
+ * {@code KTOCL.java} is the main class of the KTO project.
+ * Uses a single instance of {@link CSVManagerCL} and {@link InputHandlerCL} each run to interface with CSV files and handle user input, respectively.
  * This is the main (command-line) file to be run, and contains the main program flow.
  * 
  * @author Christian Azinn
  * @version 0.3
  * @since 0.1
  */
-public class kto {
+public class KTOCL {
 
     /**
      * Main method. Handles all program flow and logic.
@@ -18,8 +18,8 @@ public class kto {
     public static void main(String[] args) {
 
         // instantiate csvmanager and inputhandler
-        CSVManager csv = new CSVManager();
-        InputHandler input = new InputHandler();
+        CSVManagerCL csv = new CSVManagerCL();
+        InputHandlerCL input = new InputHandlerCL();
         boolean keepLooping = true;
 
         // strings for use later
@@ -52,10 +52,10 @@ public class kto {
 
                 String command = commands.get(0);
 
-                if(command.equals(InputHandler.Command.WRITEFILE.prompt)) {
+                if(command.equals(InputHandlerCL.Command.WRITEFILE.prompt)) {
                     if(!csv.write()) System.out.println(id + "An error occurred during writing. This shouldn't have happened.");
                     else System.out.println(id + "Saved successfully.");
-                } else if(command.equals(InputHandler.Command.SHOWKEYS.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.SHOWKEYS.prompt)) {
                     System.out.println(id + "List of keys for file \"" + csv.getF() + "\":");
                     System.out.println(id + "---------------------------------------------------------------");
                     int i = 0;
@@ -74,12 +74,12 @@ public class kto {
                         }
                     }
                     if(i != 0) System.out.println();
-                } else if(command.equals(InputHandler.Command.EXIT.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.EXIT.prompt)) {
                     System.out.println(id + "Goodbye!");
                     keepLooping = false;
                 }
-                else if(command.equals(InputHandler.Command.GETFILENAME.prompt)) System.out.println(id + "Active filename: \"" + csv.getF() + "\"");
-                else if(command.equals(InputHandler.Command.HELP.prompt)) System.out.println(id + help);
+                else if(command.equals(InputHandlerCL.Command.GETFILENAME.prompt)) System.out.println(id + "Active filename: \"" + csv.getF() + "\"");
+                else if(command.equals(InputHandlerCL.Command.HELP.prompt)) System.out.println(id + help);
                 else System.out.println(id + ii + help);
 
             } else if(commands.size() == 2) {
@@ -87,21 +87,21 @@ public class kto {
                 String command = commands.get(0);
                 String key = commands.get(1);
 
-                if(command.equals(InputHandler.Command.READFILE.prompt)) { 
+                if(command.equals(InputHandlerCL.Command.READFILE.prompt)) { 
                     try {
                         if(csv.read(key)) System.out.println(id + "File \"" + key + "\" read successfully.");
                         else System.out.println(id + ia);
                     }  catch(Exception e) { System.out.println(id + ia); }
-                } else if(command.equals(InputHandler.Command.CREATEFILE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.CREATEFILE.prompt)) {
                     if(csv.create(key)) System.out.println(id + "File \"" + key + "\" created successfully.");
                     else System.out.println(id + ia);
-                } else if(command.equals(InputHandler.Command.CLEARLINE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.CLEARLINE.prompt)) {
                     if(csv.clearLine(key)) System.out.println(id + "Line \"" + key + "\" cleared successfully.");
                     else System.out.println(id + ik);
-                } else if(command.equals(InputHandler.Command.DELETELINE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.DELETELINE.prompt)) {
                     if(csv.deleteLine(key)) System.out.println(id + "Line \"" + key + "\" deleted successfully.");
                     else System.out.println(id + ik);
-                } else if(command.equals(InputHandler.Command.GETLINE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.GETLINE.prompt)) {
                     System.out.println(id + "List of notes for key \"" + key + "\":");
                     System.out.println(id + "---------------------------------------------------------------");
                     int i = 0;
@@ -109,7 +109,7 @@ public class kto {
                         i++;
                         System.out.println(id + "(" + i + ") " + note);
                     }
-                } else if(command.equals(InputHandler.Command.NEWLINE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.NEWLINE.prompt)) {
                     csv.newLine(key);
                     System.out.println(id + "New line successfully created with key \"" + key + "\".");
                 } else System.out.println(id + ii + help);
@@ -120,18 +120,18 @@ public class kto {
                 String key = commands.get(1);
                 String secondary = commands.get(2);
 
-                if(command.equals(InputHandler.Command.ADDTOLINE.prompt)) {
+                if(command.equals(InputHandlerCL.Command.ADDTOLINE.prompt)) {
                     if(csv.addToLine(key, secondary)) System.out.println(id + "Info added successfully to line \"" + key + "\".");
                     else System.out.println(id + ik);
-                } else if(command.equals(InputHandler.Command.DELETEFROMLINE.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.DELETEFROMLINE.prompt)) {
                     int status = csv.deleteFromLine(key, Integer.parseInt(secondary));
                     if(status == 0) System.out.println(id + "Info deleted successfully from line \"" + key + "\".");
                     else if(status == -1) System.out.println(id + ik);
                     else if(status == -2) System.out.println(id + "Invalid index!");
-                } else if(command.equals(InputHandler.Command.CHANGEKEY.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.CHANGEKEY.prompt)) {
                     if(csv.changeKey(key, secondary)) System.out.println(id + "Key of line \"" + key + "\" changed successfully to \"" + secondary + "\".");
                     else System.out.println(id + ik);
-                } else if(command.equals(InputHandler.Command.COPY.prompt)) {
+                } else if(command.equals(InputHandlerCL.Command.COPY.prompt)) {
                     if(csv.copy(key, secondary)) System.out.println(id + "Line \"" + key + "\" copied successfully to line at key \"" + secondary + "\".");
                     else System.out.println(id + ik);
                 } else System.out.println(id + ii + help);
