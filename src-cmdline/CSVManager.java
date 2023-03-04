@@ -15,6 +15,7 @@ public class CSVManager {
     // instance variables
     private TreeMap<String, ArrayList<String>> activeCsv;
     private String activeFilename;
+    private boolean isSaved;
 
 
     /**
@@ -30,9 +31,10 @@ public class CSVManager {
             }
         };
 
-        // set csv and filename
+        // set instance variables
         activeCsv = new TreeMap<String, ArrayList<String>>(c);
         activeFilename = "";
+        isSaved = false;
     }
 
 
@@ -47,7 +49,7 @@ public class CSVManager {
     public boolean read(String filename) throws FileNotFoundException, IOException {
         try {
             // initialize filereader and reset csv treemap
-            BufferedReader r = new BufferedReader(new FileReader("csvs/" + filename + ".csv"));
+            BufferedReader r = new BufferedReader(new FileReader("../csvs/" + filename + ".csv"));
             activeCsv.clear();
             activeFilename = filename;
 
@@ -78,6 +80,7 @@ public class CSVManager {
             }
             // flush and return
             r.close();
+            isSaved = true;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -90,7 +93,7 @@ public class CSVManager {
     public boolean write() {
         try {
             // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter("csvs/" + activeFilename + ".csv"));
+            PrintWriter pw = new PrintWriter(new FileWriter("../csvs/" + activeFilename + ".csv"));
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -109,6 +112,7 @@ public class CSVManager {
             }
             // flush and return
             pw.close();
+            isSaved = true;
             return true;
         }  catch(Exception e) { return false; }
     }
@@ -121,9 +125,10 @@ public class CSVManager {
      */
     public boolean create(String filename) {
         try {
-            File file = new File("csvs/" + filename + ".csv");
+            File file = new File("../csvs/" + filename + ".csv");
             file.createNewFile();
             activeFilename = filename;
+            isSaved = true;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -138,6 +143,7 @@ public class CSVManager {
     public boolean addToLine(String key, String add) {
         try {
             activeCsv.get(key).add(add);
+            isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -151,6 +157,7 @@ public class CSVManager {
     public boolean clearLine(String key) {
         try {
             activeCsv.get(key).clear();
+            isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -168,6 +175,7 @@ public class CSVManager {
             ArrayList<String> keys = activeCsv.get(key);
             if(idx >= keys.size()) return -2;
             keys.remove(idx);
+            isSaved = false;
             return 0;
         } catch(Exception e) { return -1; }
     }
@@ -179,6 +187,7 @@ public class CSVManager {
      */
     public void newLine(String key) {
         activeCsv.put(key, new ArrayList<String>());
+        isSaved = false;
     }
 
 
@@ -190,6 +199,7 @@ public class CSVManager {
     public boolean deleteLine(String key) {
         try {
             activeCsv.remove(key);
+            isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -218,6 +228,7 @@ public class CSVManager {
         try {
             activeCsv.put(newKey, activeCsv.get(key));
             activeCsv.remove(key);
+            isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -232,6 +243,7 @@ public class CSVManager {
     public boolean copy(String key, String newKey) {
         try {
             activeCsv.put(newKey, activeCsv.get(key));
+            isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -252,5 +264,14 @@ public class CSVManager {
      */
     public Set<String> getKeys() {
         return activeCsv.keySet();
+    }
+
+
+    /**
+     * Getter method for the save status of the {@code TreeMap<String, ArrayList<String>>}.
+     * @return the save status of the {@code TreeMap<String, ArrayList<String>>}
+     */
+    public boolean getSaved() {
+        return isSaved;
     }
 }
