@@ -1,3 +1,4 @@
+package io;
 import java.io.*;
 import java.util.*;
 
@@ -6,7 +7,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 1.0
  * @since 0.0.1
  */
 public class CSVManager {

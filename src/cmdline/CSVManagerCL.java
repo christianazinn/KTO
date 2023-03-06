@@ -7,7 +7,7 @@ import java.util.*;
  * A single instance of a {@code CSVManager} is created in each run of {@link KTOCL} to interface with the CSVs.
  * 
  * @author Christian Azinn
- * @version 0.4
+ * @version 1.0
  * @since 0.1
  */
 public class CSVManagerCL {
@@ -49,7 +49,7 @@ public class CSVManagerCL {
     public boolean read(String filename) throws FileNotFoundException, IOException {
         try {
             // initialize filereader and reset csv treemap
-            BufferedReader r = new BufferedReader(new FileReader("../../csvs/" + filename + ".csv"));
+            BufferedReader r = new BufferedReader(new FileReader("../csvs/" + filename + ".csv"));
             activeCsv.clear();
             activeFilename = filename;
 
@@ -93,7 +93,7 @@ public class CSVManagerCL {
     public boolean write() {
         try {
             // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter("../../csvs/" + activeFilename + ".csv"));
+            PrintWriter pw = new PrintWriter(new FileWriter("../csvs/" + activeFilename + ".csv"));
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -125,7 +125,7 @@ public class CSVManagerCL {
      */
     public boolean create(String filename) {
         try {
-            File file = new File("../../csvs/" + filename + ".csv");
+            File file = new File("../csvs/" + filename + ".csv");
             file.createNewFile();
             activeFilename = filename;
             isSaved = true;

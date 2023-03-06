@@ -2,11 +2,11 @@ import java.util.ArrayList;
 
 /**
  * {@code KTOCL.java} is the main class of the KTO project.
- * Uses a single instance of {@link CSVManager} and {@link InputHandlerCL} each run to interface with CSV files and handle user input, respectively.
+ * Uses a single instance of {@link CSVManagerCL} and {@link InputHandlerCL} each run to interface with CSV files and handle user input, respectively.
  * This is the main (command-line) file to be run, and contains the main program flow.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 1.0
  * @since 0.1
  */
 public class KTOCL {
@@ -18,7 +18,7 @@ public class KTOCL {
     public static void main(String[] args) {
 
         // instantiate csvmanager and inputhandler
-        CSVManager csv = new CSVManager();
+        CSVManagerCL csv = new CSVManagerCL();
         InputHandlerCL input = new InputHandlerCL();
         boolean keepLooping = true;
 

@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * A single instance of a {@code InputHandler} is created in each run of {@link KTOCL} to process user input.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 1.0
  * @since 0.1
  */
 public class InputHandlerCL {
