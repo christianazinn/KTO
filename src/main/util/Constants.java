@@ -11,8 +11,9 @@ import java.awt.*;
  */
 public class Constants {
 
+    
     /**
-     * Container class for graphics-related constants such as padding values.
+     * {@code GraphicsConstants} is a container class for graphics-related constants such as padding values.
      * 
      * @author Christian Azinn
      * @version 0.2
@@ -33,8 +34,9 @@ public class Constants {
         public static final int SBHEIGHT = 40;
     }
 
+
     /**
-     * Container class for font-related constants such as font size and font name.
+     * {@code FontConstants} is a container class for font-related constants such as font size and font name.
      * 
      * @author Christian Azinn
      * @version 0.2

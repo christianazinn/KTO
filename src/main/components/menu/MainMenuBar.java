@@ -13,10 +13,12 @@ import java.awt.event.*;
  */
 public class MainMenuBar extends JMenuBar implements ActionListener {
     public MainMenuBar() {
+        // Create new [thing]Menu classes and add them here so this file stays organized
         JMenu fileMenu = new FileMenu(this);
         add(fileMenu);
     }
 
+    
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals("item1")) {
             System.out.println("mris");
