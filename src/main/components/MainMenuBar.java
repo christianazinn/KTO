@@ -1,6 +1,9 @@
-package menu;
+package components;
 
 import javax.swing.*;
+
+import components.menu.FileMenu;
+
 //import java.awt.*;
 import java.awt.event.*;
 

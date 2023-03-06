@@ -1,4 +1,4 @@
-package menu;
+package components.menu;
 
 import javax.swing.*;
 //import java.awt.*;

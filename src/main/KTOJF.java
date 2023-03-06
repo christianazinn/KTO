@@ -1,8 +1,7 @@
+import components.*;
+
 import javax.swing.*;
 import java.awt.*;
-
-import menu.MainMenuBar;
-import locbar.LocationBar;
 
 // fuck it abspos
 // remember to use multiple content panes to separate different parts of the ui
@@ -12,7 +11,7 @@ import locbar.LocationBar;
  * {@code KTOJF} is the main file of the KTO JFrame-based application.
  * 
  * @author Christian Azinn
- * @version 0.2
+ * @version 0.0.2a
  * @since 0.0.1
  */
 public class KTOJF extends JFrame {
@@ -26,13 +25,12 @@ public class KTOJF extends JFrame {
         setJMenuBar(new MainMenuBar());
         insets = getInsets();
 
-        // for whatever reason this shows up double size on my screen
-
         LocationBar locbar = new LocationBar("test");
         Dimension size = locbar.getPreferredSize();
         locbar.setBounds(insets.left, insets.top, size.width, size.height);
         add(locbar);
 
+        // for whatever reason this shows up double size on my screen
         setPreferredSize(new Dimension(960, 540));
         pack();
         setLocationRelativeTo(null);
