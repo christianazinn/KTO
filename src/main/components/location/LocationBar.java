@@ -1,9 +1,8 @@
-package components;
-
-import javax.swing.*;
+package components.location;
 
 import util.Constants;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -22,16 +21,17 @@ public class LocationBar extends JPanel {
     public LocationBar(String filename) {
         super(null); // abspos
 
-        this.reset(filename);
         Insets insets = getInsets();
 
-        setPreferredSize(new Dimension(960, 18));
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.LOCBARHEIGHT));
 
-        label = new JLabel("> " + text);
+        label = new JLabel("For some reason this placeholder text has to be really long or otherwise the label doesn't fully show. There's probably a method to fix this but I'm lazy so I'm just writing this placeholder text.");
         add(label);
         label.setFont(Constants.FontConstants.SBOLD);
         Dimension size = label.getPreferredSize();
         label.setBounds(Constants.GraphicsConstants.HPADDING + insets.left, insets.top, size.width, size.height);
+        
+        reset(filename);
 
         setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         setVisible(true);

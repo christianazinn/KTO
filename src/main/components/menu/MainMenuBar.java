@@ -1,9 +1,6 @@
-package components;
+package components.menu;
 
 import javax.swing.*;
-
-import components.menu.FileMenu;
-
 //import java.awt.*;
 import java.awt.event.*;
 
@@ -24,5 +21,6 @@ public class MainMenuBar extends JMenuBar implements ActionListener {
         if(e.getActionCommand().equals("item1")) {
             System.out.println("mris");
         }
+        // PLACEHOLDER
     }
 }

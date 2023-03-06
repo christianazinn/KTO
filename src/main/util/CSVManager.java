@@ -1,7 +1,15 @@
 package util;
+
 import java.io.*;
 import java.util.*;
 
+// Note to self: Add link capabilities using @ references
+// For example: test,lorem,ipsum adds "lorem" and "ipsum" to key "test".
+// linktest,@test adds the key "test" to "linktest" which will redirect to the above stack.
+
+// Note to self: Add textboxes and textbox titles using []
+// For example: test,lorem[This text was written in a textbox.],ipsum[This was too.] adds the respective text to the respective tags under "test".
+// Brackets that are actually written in text must be backslash-escaped.
 
 /**
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
