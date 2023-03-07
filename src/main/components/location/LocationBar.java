@@ -73,10 +73,10 @@ public class LocationBar extends JPanel {
             if(directoriesDown == 0) return false;
 
             // Search for the last '>'
-            int i = text.length();
+            int i = text.length() - 1;
             for(; i >= 0; i--) if(text.charAt(i) == '>') break;
             // Truncate everything after that, as well as the preceding space
-            text = text.substring(0, text.length() - i - 1);
+            text = text.substring(0, i - 1);
 
             // Keep track of how many directories in it is
             directoriesDown--;
@@ -93,8 +93,8 @@ public class LocationBar extends JPanel {
      * @param filename the name of the opened file
      */
     public void reset(String filename) {
-        text = filename;
+        text = "> " + filename;
         directoriesDown = 0;
-        label.setText("> " + text);
+        label.setText(text);
     }
 }

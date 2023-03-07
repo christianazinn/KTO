@@ -11,18 +11,24 @@ import java.awt.event.*;
  * @version 0.2
  * @since 0.0.1
  */
-public class MainMenuBar extends JMenuBar implements ActionListener {
-    public MainMenuBar() {
+public class MainMenuBar extends JMenuBar {
+    
+    // Instance variables for each Menu
+    private JMenu fileMenu;
+
+    public MainMenuBar(ActionListener a) {
         // Create new [thing]Menu classes and add them here so this file stays organized
-        JMenu fileMenu = new FileMenu(this);
+        // Also write getter method for each
+        fileMenu = new FileMenu(a);
         add(fileMenu);
     }
 
-    
-    public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equals("item1")) {
-            System.out.println("mris");
-        }
-        // PLACEHOLDER
+
+    /**
+     * Getter method for the {@link FileMenu} used by this object.
+     * @return a reference to the active {@link FileMenu}
+     */
+    public JMenu getFileMenu() {
+        return fileMenu;
     }
 }

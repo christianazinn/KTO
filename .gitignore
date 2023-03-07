@@ -25,3 +25,6 @@ replay_pid*
 
 # CSV files
 *.csv
+
+# Javadoc files
+javadoc/

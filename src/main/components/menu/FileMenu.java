@@ -12,16 +12,17 @@ import java.awt.event.*;
  * @since 0.0.2
  */
 public class FileMenu extends JMenu {
-    public FileMenu(ActionListener parent) {
+    public FileMenu(ActionListener a) {
         // Create a JMenu with name "File" and set its AccessibleDescription
         super("File");
+        String prefix = "#FILE";
         getAccessibleContext().setAccessibleDescription("Menu for file interactions.");
 
         // Placeholder menu item
-        JMenuItem menuItem = new JMenuItem("A text-only menu item");
+        JMenuItem menuItem = new JMenuItem("Save...");
         menuItem.getAccessibleContext().setAccessibleDescription("This doesn't really do anything");
         add(menuItem);
-        menuItem.setActionCommand("item1");
-        menuItem.addActionListener(parent);
+        menuItem.setActionCommand(prefix + "Save");
+        menuItem.addActionListener(a);
     }
 }

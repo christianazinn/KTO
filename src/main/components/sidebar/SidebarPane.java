@@ -11,26 +11,31 @@ import java.util.*;
  * {@code SidebarPane} is a class to create a {@link JPanel} to be used as the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.3
  * @since 0.0.3
  */
-public class SidebarPane extends JPanel implements ActionListener {
+public class SidebarPane extends JPanel {
 
     // Instance variable for the button command prompts, for reference by actionPerformed
     private ArrayList<String> buttonText;
 
-    public SidebarPane(ArrayList<String> keys) {
+    public SidebarPane(ArrayList<String> keys, ActionListener a) {
 
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
         // Set size (don't ask)
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, keys.size() * Constants.GraphicsConstants.SBHEIGHT + (keys.size() - 1) * Constants.GraphicsConstants.VPADDING));
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (keys.size() + 2) * Constants.GraphicsConstants.SBHEIGHT + (keys.size() + 1) * Constants.GraphicsConstants.VPADDING));
 
         // Set up values for button positioning
         int vOffset = 0;
         Insets insets = getInsets();
         Dimension size = new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SBHEIGHT);
+
+        // Add the "add" button value - the funny MS Word back double quote, which should never be input anywhere else
+        keys.add("”");
+        // Add the "back" button value - the funny MS Word forward double quote, which should never be input anywhere else
+        keys.add("“");
 
         // Initialize the ArrayList for button command prompts
         buttonText = new ArrayList<String>(keys.size());
@@ -56,15 +61,15 @@ public class SidebarPane extends JPanel implements ActionListener {
 
             // Copy the key into a new String
             String keyText = str;
-            // If there was a bracket present (it was CORRECTLY FORMATTED, thank you) truncate the String
-            if(relativeIdx != -1) keyText = str.substring(0, relativeIdx);
+            // If there was a bracket present, truncate the String
+            if(relativeIdx != 0) keyText = str.substring(0, relativeIdx - 1);
             // Add that String to the button command prompt ArrayList
             buttonText.add(keyText);
 
             // Create a new SidebarButton using that text and this object as an ActionListener (change that at some point?)
-            SidebarButton button = new SidebarButton(keyText, this);
+            SidebarButton button = new SidebarButton(keyText, a);
             // Positioning and adding
-            button.setBounds(insets.left, insets.top + vOffset, size.width, size.height);
+            button.setBounds(insets.left, insets.top + vOffset, size.width - 20, size.height);
             add(button);
             // Adding vertical offset for the next button
             vOffset += Constants.GraphicsConstants.SBHEIGHT + Constants.GraphicsConstants.VPADDING;
@@ -74,8 +79,12 @@ public class SidebarPane extends JPanel implements ActionListener {
         setVisible(true);
     }
 
-    
-    public void actionPerformed(ActionEvent a) {
-        // PLACEHOLDER
+
+    /**
+     * Getter method for the {@code ArrayList<String>} containing button keywords.
+     * @return the list of button keywords
+     */
+    public ArrayList<String> getButtonText() {
+        return buttonText;
     }
 }

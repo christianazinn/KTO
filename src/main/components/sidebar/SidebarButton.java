@@ -10,7 +10,7 @@ import java.awt.event.*;
  * {@code SidebarButton} is a class to create a {@code JButton} to be used in the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.3
  * @since 0.0.3
  */
 public class SidebarButton extends JButton {
@@ -26,22 +26,29 @@ public class SidebarButton extends JButton {
         // Handle @ operator
         if(text.charAt(0) == '@') {
             // Set custom text to a directory indication
-            text = "> " + text.substring(1);
-
+            setText("> " + text.substring(1));
             // Hover tooltip indicates the redirect
             setToolTipText("Go to " + text.substring(2) + ".");
+        } else if(text.charAt(0) == '“') { // Handle “ (Back) operator
+            // Set custom text
+            setText("< Back...");
+            // Hover tooltip indicates going back
+            setToolTipText("Return to the previous directory.");
+        } else if(text.charAt(0) == '”') { // Handle ” (New) operator
+            // Set custom text
+            setText("+ New...");
+            // Hover tooltip indicates creating new
+            setToolTipText("Create a new tab or redirect.");
         } else { // Handle not-@-operator
-            // Set custom text just to... well, text
+            // Set custom text
             setText(text);
-
             // Hover tooltip indicates info display
             setToolTipText("Display information of " + text + ".");
         }
 
         // Add the indicated ActionListener
         addActionListener(a);
-        // Set size (using GraphicsConstants) and visibility
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SBHEIGHT));
+        // Set visibility
         setVisible(true);
     }
 }

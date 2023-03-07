@@ -15,7 +15,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.0
+ * @version 1.1
  * @since 0.0.1
  */
 public class CSVManager {
@@ -143,12 +143,12 @@ public class CSVManager {
 
 
     /**
-     * Adds a String {@code add} to the line in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
-     * @param key the key of the line to add {@code add} to
+     * Adds a String {@code add} to a branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
+     * @param key the key of the branch to add {@code add} to
      * @param add the String to be added to the line with key {@code key}
      * @return whether or not the add was successful
      */
-    public boolean addToLine(String key, String add) {
+    public boolean addToBranch(String key, String add) {
         try {
             activeCsv.get(key).add(add);
             isSaved = false;
@@ -158,11 +158,11 @@ public class CSVManager {
 
 
     /**
-     * Clears all information Strings attached to a line in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
-     * @param key the key of the line to be cleared
+     * Clears all information Strings attached to a branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
+     * @param key the key of the branch to be cleared
      * @return whether or not the clear was successful
      */
-    public boolean clearLine(String key) {
+    public boolean clearBranch(String key) {
         try {
             activeCsv.get(key).clear();
             isSaved = false;
@@ -172,12 +172,12 @@ public class CSVManager {
 
 
     /**
-     * Deletes a String of information from a line in the {@code TreeMap<String, ArrayList<String>>} given its {@code idx} in the {@code ArrayList<String>} of information.
-     * @param key the key of the line containing the String of information
+     * Deletes a String of information from a branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code idx} in the {@code ArrayList<String>} of information.
+     * @param key the key of the branch containing the String of information
      * @param idx the index of the String of information to be deleted
      * @return whether or not the deletion was successful
      */
-    public int deleteFromLine(String key, int idx) {
+    public int deleteFromBranch(String key, int idx) {
         idx -= 1;
         try {
             ArrayList<String> keys = activeCsv.get(key);
@@ -190,21 +190,21 @@ public class CSVManager {
 
 
     /**
-     * Creates a new line in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
+     * Creates a new branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
      * @param key the key of the line to be created
      */
-    public void newLine(String key) {
+    public void newBranch(String key) {
         activeCsv.put(key, new ArrayList<String>());
         isSaved = false;
     }
 
 
     /**
-     * Deletes an entire line from the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
-     * @param key the key of the line to be deleted
+     * Deletes an entire branch from the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
+     * @param key the key of the branch to be deleted
      * @return whether or not the deletion was successful
      */
-    public boolean deleteLine(String key) {
+    public boolean deleteBranch(String key) {
         try {
             activeCsv.remove(key);
             isSaved = false;
@@ -218,7 +218,7 @@ public class CSVManager {
      * @param key the key of the {@code ArrayList<String>} to be retrieved
      * @return an {@code ArrayList<String>} corresponding to the {@code key}, or an empty {@code ArrayList<String>} if an error is encountered
      */
-    public ArrayList<String> getLine(String key) {
+    public ArrayList<String> getBranch(String key) {
         try {
             if(activeCsv.get(key) != null) return activeCsv.get(key);
             else return new ArrayList<String>();

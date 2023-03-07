@@ -16,7 +16,7 @@ public class Constants {
      * {@code GraphicsConstants} is a container class for graphics-related constants such as padding values.
      * 
      * @author Christian Azinn
-     * @version 0.2
+     * @version 0.3
      * @since 0.0.2
      */
     public static class GraphicsConstants {
@@ -32,6 +32,8 @@ public class Constants {
 
         public static final int SBWIDTH = 160;
         public static final int SBHEIGHT = 40;
+        
+        public static final int PSPVOFFSET = (MENUBARHEIGHT + LOCBARHEIGHT) / 2;
     }
 
 
