@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.awt.event.*;
 
 /**
- * {@code SidebarButton} is a class to create a {@code JButton} to be used in the navigation sidebar of the application.
+ * {@code SidebarButton} is a class to create a {@link JButton} to be used in the navigation sidebar of the application.
  * 
  * @author Christian Azinn
  * @version 0.3

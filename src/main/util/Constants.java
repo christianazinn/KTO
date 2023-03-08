@@ -6,7 +6,7 @@ import java.awt.*;
  * {@code Constants} is a container class for all constants, each individually categorized in their own class.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 0.4
  * @since 0.0.2
  */
 public class Constants {
@@ -16,7 +16,7 @@ public class Constants {
      * {@code GraphicsConstants} is a container class for graphics-related constants such as padding values.
      * 
      * @author Christian Azinn
-     * @version 0.3
+     * @version 0.4
      * @since 0.0.2
      */
     public static class GraphicsConstants {
@@ -32,6 +32,9 @@ public class Constants {
 
         public static final int SBWIDTH = 160;
         public static final int SBHEIGHT = 40;
+
+        public static final int STWIDTH = 120;
+        public static final int STHEIGHT = 20;
         
         public static final int PSPVOFFSET = (MENUBARHEIGHT + LOCBARHEIGHT) / 2;
     }

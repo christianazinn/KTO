@@ -9,15 +9,12 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
-// remember to use multiple content panes to separate different parts of the ui
-// each content pane can be individually moved, resized, etc
-
 /**
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * Also handles all button interactions because it already has a handle on everything.
  * 
  * @author Christian Azinn
- * @version 0.0.5
+ * @version 0.1.0
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -32,8 +29,9 @@ public class KTOJF extends JFrame implements ActionListener {
     private PrimaryTextPane ptPane;
     private PrimaryScrollPane psPane;
     private CSVManager csv;
-    // Instance variable for the buttons
-    private ArrayList<String> buttons;
+    // Instance variable for the active branch
+    private ArrayList<String> branch;
+    private String activeSubbranch;
     
     // TEMP
     private String defaultFilename = "todo";
@@ -55,7 +53,8 @@ public class KTOJF extends JFrame implements ActionListener {
         // Instantiate CSVManager
         csv = new CSVManager();
         try { csv.open(defaultFilename); } catch(Exception e) {} // TEMP
-        buttons = csv.getTopLevelBranch();
+        branch = csv.getTopLevelBranch();
+        activeSubbranch = "";
 
         // Get insets
         insets = getInsets();
@@ -67,7 +66,7 @@ public class KTOJF extends JFrame implements ActionListener {
         add(locBar);
 
         // Test code for SidebarScrollPane, TBR
-        sbPane = new SidebarPane(buttons, this, true);
+        sbPane = new SidebarPane(branch, this, true);
         ssPane = new SidebarScrollPane(sbPane);
         size = ssPane.getPreferredSize();
         ssPane.setBounds(insets.left, insets.top + Constants.GraphicsConstants.LOCBARHEIGHT, size.width, size.height);
@@ -92,7 +91,24 @@ public class KTOJF extends JFrame implements ActionListener {
 
     }
 
-    // TODO deal with backslash escaping, actual textboxes, top-level textboxes, non-top-level keys/redirects
+    
+    // TODO - correctly present backslash escaped commas, fix interpretation of backslash escaped brackets (sidebarPane?)
+    // TODO - stop replacing \, with \\, and so on (read: don't multiple escape)
+    // TODO - GET THIS SHIT TO WORK
+    /**
+     * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
+     */
+    public void save() {
+        try {
+            String tbText = ptPane.getText().replaceAll("\n", "\\\\n")  
+                    .replaceAll("(?<!\\\\)(,)", "\\\\,").replaceAll("(?<!\\\\)(\\[)", "\\\\[").replaceAll("(?<!\\\\)(\\])", "\\\\]");
+            String finStr = activeSubbranch + "[" + tbText + "]";
+            branch.set(sbPane.getButtonText().indexOf(activeSubbranch), finStr);
+        } catch(Exception e) {}
+        finally { csv.save(); }
+    }
+
+    // TODO - deal with backslash escaping, top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!), creation of new keys
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -103,26 +119,42 @@ public class KTOJF extends JFrame implements ActionListener {
         char tag = command.charAt(0);
         switch(tag) {
             case '@': // redirect downward
-                locBar.directoryDown(command.substring(1)); // TODO: implement check to ensure directory exists
-                buttons = csv.getBranch(command.substring(1));
-                sbPane = new SidebarPane(buttons, this, false);
+                locBar.directoryDown(command.substring(1));
+                branch = csv.getBranch(command.substring(1));
+                sbPane = new SidebarPane(branch, this, false);
                 ssPane.updateView(sbPane);
                 break;
             case '#': // menu option
-                System.out.println("Menu option placeholder!");
+                switch(command.substring(1,5)) { // get menu
+                    case "FILE":
+                        switch(command.substring(5)) {
+                            case "Save": // save case
+                                save();
+                                break;
+                            default:
+                                System.out.println("Menu option error (2)!");
+                                break;
+                        }
+                        break;
+                    default:
+                        System.out.println("Menu option error (1)!");
+                        break;
+                }
                 break;
-            case '“': // back option
+            case '“': // redirect upward (back option)
                 String redirect = locBar.directoryUp();
-                if(redirect.equals("@")) buttons = csv.getTopLevelBranch();
-                else buttons = csv.getBranch(redirect);
-                sbPane = new SidebarPane(buttons, this, redirect.equals("@"));
+                if(redirect.equals("@")) branch = csv.getTopLevelBranch();
+                else branch = csv.getBranch(redirect);
+                sbPane = new SidebarPane(branch, this, redirect.equals("@"));
                 ssPane.updateView(sbPane);
                 break;
             case '”': // new option
-                System.out.println(ptPane.getText());
+                break;
+            case '*': // stf enter
                 break;
             default:  // display text
-                String fullText = buttons.get(sbPane.getButtonText().indexOf(command));
+                activeSubbranch = command;
+                String fullText = branch.get(sbPane.getButtonText().indexOf(command));
 
                 // I can't believe all this code is needed just to backslash escape...
                 int bracketIdx;
@@ -130,27 +162,33 @@ public class KTOJF extends JFrame implements ActionListener {
 
                 while(true) {
                     // Search for an open bracket
-                    bracketIdx = fullText.indexOf("[") + 1;
+                    bracketIdx = fullText.indexOf("[");
                     // if there is no bracket for some reason, or it was not backslash escaped, stop looping
-                    if(bracketIdx == 0 || fullText.charAt(bracketIdx - 2) != '\\') break;
+                    if(bracketIdx == -1 || fullText.charAt(bracketIdx - 1) != '\\') break;
                     // Continue looping if the bracket was backslash escaped
-                    fullText = fullText.substring(bracketIdx);
+                    fullText = fullText.substring(bracketIdx + 1);
                 }
-                fullText = fullText.substring(bracketIdx);
-
                 if(bracketIdx == 0) break; // no bracket - empty
+                fullText = fullText.substring(bracketIdx + 1);
 
+                int relativePos = 0;
+                String tempText = fullText;
                 while(true) {
                     // Search for a close bracket
-                    bracketIdx = fullText.indexOf("]");
+                    bracketIdx = tempText.indexOf("]");
+                    relativePos += bracketIdx;
                     // if there is no bracket for some reason, or it was not backslash escaped, stop looping
-                    if(bracketIdx == -1 || bracketIdx == 0 || fullText.charAt(bracketIdx - 1) != '\\') break;
+                    if(bracketIdx == -1 || bracketIdx == 0 || tempText.charAt(bracketIdx - 1) != '\\') break;
                     // Continue looping if the bracket was backslash escaped
-                    fullText = fullText.substring(0, bracketIdx);
+                    tempText = tempText.substring(bracketIdx + 1);
+                    relativePos++;
                 }
+                bracketIdx = relativePos;
+                if(bracketIdx == -1 || bracketIdx == 0) break; // no bracket - corrupted
                 fullText = fullText.substring(0, bracketIdx);
 
-                if(bracketIdx == -1 || bracketIdx == 0) break; // no bracket - corrupted
+                // regex my behated
+                fullText = fullText.replaceAll("(?<!\\\\)(\\\\)(?!n)", "");
 
                 // java is really dumb about this and apparently newline has to be a string literal?! oh my god
                 int last = 0;
@@ -159,6 +197,7 @@ public class KTOJF extends JFrame implements ActionListener {
                     ptPane.append("\n");
                     last = i+2;
                 }
+
                 ptPane.append(fullText.substring(last));
                 break;
         }

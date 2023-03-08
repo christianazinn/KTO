@@ -15,7 +15,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.2
+ * @version 1.3
  * @since 0.0.1
  */
 public class CSVManager {
@@ -46,7 +46,19 @@ public class CSVManager {
     }
 
     // REMINDER THAT FILE DIRECTORIES ARE RELATIVE TO KTOJF.java NOT CSVManager.java
-    // TODO backslash escape commas in open() and save()
+
+    public int findNotBackslashed(String line, String search) {
+        int relativePos = 0;
+        int idx;
+        while(true) {
+            idx = line.indexOf(search);
+            relativePos += idx;
+            if(idx == -1 || line.charAt(idx - 1) != '\\') break;
+            line = line.substring(idx + 1);
+            relativePos++;
+        }
+        return relativePos;
+    }
 
     /**
      * Reads a comma-separated value file with the specified filename into a {@code TreeMap<String, ArrayList<String>}.
@@ -70,16 +82,17 @@ public class CSVManager {
                 ArrayList<String> values = new ArrayList<String>();
 
                 // start separating by commas - first value is the key
-                int idx = line.indexOf(",");
+                int idx = findNotBackslashed(line, ",");
+                
                 String key = line.substring(0, idx);
                 line = line.substring(idx + 1);
-                idx = line.indexOf(",");
+                idx = findNotBackslashed(line, ",");
 
                 // keep separating by commas - each later value is a value
                 while(idx != -1) {
                     values.add(line.substring(0, idx));
                     line = line.substring(idx + 1);
-                    idx = line.indexOf(",");
+                    idx = findNotBackslashed(line, ",");
                 }
 
                 // last element has no comma after it
@@ -145,21 +158,6 @@ public class CSVManager {
 
 
     /**
-     * Adds a String {@code add} to a branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
-     * @param key the key of the branch to add {@code add} to
-     * @param add the String to be added to the line with key {@code key}
-     * @return whether or not the add was successful
-     */
-    public boolean addToBranch(String key, String add) {
-        try {
-            activeCsv.get(key).add(add);
-            isSaved = false;
-            return true;
-        } catch(Exception e) { return false; }
-    }
-
-
-    /**
      * Clears all information Strings attached to a branch in the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
      * @param key the key of the branch to be cleared
      * @return whether or not the clear was successful
@@ -216,14 +214,18 @@ public class CSVManager {
 
 
     /**
-     * Retrieves an {@code ArrayList<String>} from the {@code TreeMap<String, ArrayList<String>>} given its {@code key}.
+     * Retrieves an {@code ArrayList<String>} from the {@code TreeMap<String, ArrayList<String>>} given its {@code key}. 
+     * Remember that this is PBR!
      * @param key the key of the {@code ArrayList<String>} to be retrieved
      * @return an {@code ArrayList<String>} corresponding to the {@code key}, or an empty {@code ArrayList<String>} if an error is encountered
      */
     public ArrayList<String> getBranch(String key) {
         try {
             if(activeCsv.get(key) != null) return activeCsv.get(key);
-            else return new ArrayList<String>();
+            else {
+                newBranch(key);
+                return activeCsv.get(key);
+            }
         } catch(Exception e) { return new ArrayList<String>(); }
     }
 
