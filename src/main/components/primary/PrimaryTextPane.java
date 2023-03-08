@@ -1,7 +1,6 @@
 package components.primary;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * {@code PrimaryTextPane} is a class to create an editable, markup-able {@link JTextArea} for use as the main frame of the application.

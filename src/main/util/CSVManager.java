@@ -15,7 +15,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.1
+ * @version 1.2
  * @since 0.0.1
  */
 public class CSVManager {
@@ -45,6 +45,8 @@ public class CSVManager {
         isSaved = false;
     }
 
+    // REMINDER THAT FILE DIRECTORIES ARE RELATIVE TO KTOJF.java NOT CSVManager.java
+    // TODO backslash escape commas in open() and save()
 
     /**
      * Reads a comma-separated value file with the specified filename into a {@code TreeMap<String, ArrayList<String>}.
@@ -57,7 +59,7 @@ public class CSVManager {
     public boolean open(String filename) throws FileNotFoundException, IOException {
         try {
             // initialize filereader and reset csv treemap
-            BufferedReader r = new BufferedReader(new FileReader("../../csvs/" + filename + ".csv"));
+            BufferedReader r = new BufferedReader(new FileReader("../csvs/" + filename + ".csv"));
             activeCsv.clear();
             activeFilename = filename;
 
@@ -81,7 +83,7 @@ public class CSVManager {
                 }
 
                 // last element has no comma after it
-                values.add(line);
+                if(line.length() != 0) values.add(line);
 
                 // add to treemap
                 activeCsv.put(key, values);
@@ -101,7 +103,7 @@ public class CSVManager {
     public boolean save() {
         try {
             // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter("../../csvs/" + activeFilename + ".csv"));
+            PrintWriter pw = new PrintWriter(new FileWriter("../csvs/" + activeFilename + ".csv"));
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -133,7 +135,7 @@ public class CSVManager {
      */
     public boolean create(String filename) {
         try {
-            File file = new File("../../csvs/" + filename + ".csv");
+            File file = new File("../csvs/" + filename + ".csv");
             file.createNewFile();
             activeFilename = filename;
             isSaved = true;
@@ -223,6 +225,25 @@ public class CSVManager {
             if(activeCsv.get(key) != null) return activeCsv.get(key);
             else return new ArrayList<String>();
         } catch(Exception e) { return new ArrayList<String>(); }
+    }
+
+
+    /**
+     * Retrieves the top-level branch of the {@code TreeMap<String, ArrayList<String>>}.
+     * @return the top level branch of the {@code TreeMap<String, ArrayList<String>>}
+     */
+    public ArrayList<String> getTopLevelBranch() {
+        ArrayList<String> keys = new ArrayList<String>(activeCsv.keySet().size());
+        for(String key : activeCsv.keySet()) keys.add("@" + key);
+        return keys;
+    }
+
+
+    /**
+     * Provides a {@code String} representation of this {@code CSVManager}, which is just the active CSV's {@code String} representation.
+     */
+    public String toString() {
+        return activeCsv.toString();
     }
 
 

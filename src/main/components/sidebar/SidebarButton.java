@@ -3,7 +3,6 @@ package components.sidebar;
 import util.Constants;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 
 /**
@@ -28,7 +27,7 @@ public class SidebarButton extends JButton {
             // Set custom text to a directory indication
             setText("> " + text.substring(1));
             // Hover tooltip indicates the redirect
-            setToolTipText("Go to " + text.substring(2) + ".");
+            setToolTipText("Go to " + text.substring(1) + ".");
         } else if(text.charAt(0) == '“') { // Handle “ (Back) operator
             // Set custom text
             setText("< Back...");

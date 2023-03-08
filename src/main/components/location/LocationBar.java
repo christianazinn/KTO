@@ -9,7 +9,7 @@ import java.awt.*;
  * {@code LocationBar} is a class to create a simple bar at the top of the screen to indicate where the user is.
  * 
  * @author Christian Azinn
- * @version 0.2
+ * @version 0.3
  * @since 0.0.2
  */
 public class LocationBar extends JPanel {
@@ -61,30 +61,33 @@ public class LocationBar extends JPanel {
 
 
     /**
-     * Move up {@code reps} directories. 
+     * Move up a directory. 
      * Cannot go higher than directory 0, so returns false if that is tried.
-     * @param reps the number of directories to move up
-     * @return whether the move was successful
+     * @return the directory address to go to, or an empty redirect if trying to move up from top level 
      */
-    public boolean directoryUp(int reps) {
-        // Repeat reps times
-        for(; reps > 0; reps--) {
-            // Check if it's trying to go higher than directory 0
-            if(directoriesDown == 0) return false;
+    public String directoryUp() {
+        // Check if it's trying to go higher than directory 0
+        if(directoriesDown == 0) return "@";
 
-            // Search for the last '>'
-            int i = text.length() - 1;
-            for(; i >= 0; i--) if(text.charAt(i) == '>') break;
-            // Truncate everything after that, as well as the preceding space
-            text = text.substring(0, i - 1);
-
-            // Keep track of how many directories in it is
-            directoriesDown--;
-        }
+        // Search for the last '>'
+        int i = text.length() - 1;
+        for(; i >= 0; i--) if(text.charAt(i) == '>') break;
+        // Truncate everything after that, as well as the preceding space
+        text = text.substring(0, i - 1);
+        i -= 2;
+        // Search for the redirect address
+        for(; i >= 0; i--) if(text.charAt(i) == '>') break;
+        String redirect = text.substring(i + 2, text.length());
+        
+        // Keep track of how many directories in it is
+        directoriesDown--;
 
         // Update label text
         label.setText(text);
-        return true;
+
+        // Check if it's at directory 0
+        if(directoriesDown == 0) return "@";
+        return redirect;
     }
 
 

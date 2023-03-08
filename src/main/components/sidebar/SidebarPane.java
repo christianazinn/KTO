@@ -11,7 +11,7 @@ import java.util.*;
  * {@code SidebarPane} is a class to create a {@link JPanel} to be used as the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 0.4
  * @since 0.0.3
  */
 public class SidebarPane extends JPanel {
@@ -19,13 +19,12 @@ public class SidebarPane extends JPanel {
     // Instance variable for the button command prompts, for reference by actionPerformed
     private ArrayList<String> buttonText;
 
-    public SidebarPane(ArrayList<String> keys, ActionListener a) {
-
+    public SidebarPane(ArrayList<String> kiys, ActionListener a, boolean isTopLevel) {
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
-        // Set size (don't ask)
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (keys.size() + 2) * Constants.GraphicsConstants.SBHEIGHT + (keys.size() + 1) * Constants.GraphicsConstants.VPADDING));
+        // I messed up and forgot ArrayLists were PBR so this is a hotfix lmao
+        ArrayList<String> keys = new ArrayList<String>(kiys);
 
         // Set up values for button positioning
         int vOffset = 0;
@@ -34,8 +33,11 @@ public class SidebarPane extends JPanel {
 
         // Add the "add" button value - the funny MS Word back double quote, which should never be input anywhere else
         keys.add("”");
-        // Add the "back" button value - the funny MS Word forward double quote, which should never be input anywhere else
-        keys.add("“");
+        // Add the "back" button value - the funny MS Word forward double quote, which should never be input anywhere else, but not at top level
+        if(!isTopLevel) keys.add("“");
+
+        // Set size (don't ask)
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, keys.size() * Constants.GraphicsConstants.SBHEIGHT + (keys.size() - 1) * Constants.GraphicsConstants.VPADDING));
 
         // Initialize the ArrayList for button command prompts
         buttonText = new ArrayList<String>(keys.size());
