@@ -8,6 +8,7 @@ import java.util.ArrayList;
  * @author Christian Azinn
  * @version 1.0
  * @since 0.1
+ * @deprecated Incompatible with the JFrame application. Use that instead.
  */
 public class KTOCL {
 

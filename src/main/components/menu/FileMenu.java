@@ -24,7 +24,6 @@ public class FileMenu extends JMenu {
         saveItem.setActionCommand(prefix + "Save");
         saveItem.addActionListener(a);
 
-        // TODO - implement these
         JMenuItem openItem = new JMenuItem("Open...");
         openItem.getAccessibleContext().setAccessibleDescription("Opens a new file.");
         add(openItem);

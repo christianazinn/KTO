@@ -13,7 +13,7 @@ import java.util.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.1
+ * @version 0.1.1a
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -39,7 +39,7 @@ public class KTOJF extends JFrame implements ActionListener {
     public KTOJF() {
 
         // Create JFrame and title it
-        super("KTO ver 0.1.1 pre-alpha");
+        super("KTO ver 0.1.1a pre-alpha");
 
         // Set UI style
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
@@ -115,6 +115,8 @@ public class KTOJF extends JFrame implements ActionListener {
     // TODO - keybinds?
     // TODO - comments lmao
     // TODO - BOTTOM BAR CONTAINING OTHER INFO
+
+    // FIXME stop naming all your input windows "Input" lmao
 
     /**
      * Manages all button {@link ActionEvent}s.
