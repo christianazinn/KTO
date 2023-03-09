@@ -15,7 +15,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.3
+ * @version 1.4
  * @since 0.0.1
  */
 public class CSVManager {
@@ -23,6 +23,7 @@ public class CSVManager {
     // instance variables
     private TreeMap<String, ArrayList<String>> activeCsv;
     private String activeFilename;
+    private String activeDirectory;
     private boolean isSaved;
 
 
@@ -30,7 +31,7 @@ public class CSVManager {
      * Constructor for a CSVManager object. 
      * Each CSVManager can hold and interact with a single CSV file (in {@code TreeMap<String, ArrayList<String>>} form) at a time.
      */
-    public CSVManager() {
+    public CSVManager(String activeDirectory) {
 
         // comparator for sorting
         Comparator<String> c = new Comparator<String>() {
@@ -42,18 +43,25 @@ public class CSVManager {
         // set instance variables
         activeCsv = new TreeMap<String, ArrayList<String>>(c);
         activeFilename = "";
+        this.activeDirectory = activeDirectory;
         isSaved = false;
     }
 
     // REMINDER THAT FILE DIRECTORIES ARE RELATIVE TO KTOJF.java NOT CSVManager.java
 
-    public int findNotBackslashed(String line, String search) {
+    /**
+     * Finds the first occurrence of a {@code String search} in a {@code String line}.
+     * @param line the {@code String} to be searched
+     * @param search the {@code String} to search for
+     * @return the index of {@code search}
+     */
+    public static int findNotBackslashed(String line, String search) {
         int relativePos = 0;
-        int idx;
+        int idx = 0;
         while(true) {
             idx = line.indexOf(search);
             relativePos += idx;
-            if(idx == -1 || line.charAt(idx - 1) != '\\') break;
+            if(idx <= 0 || line.charAt(idx - 1) != '\\') break;
             line = line.substring(idx + 1);
             relativePos++;
         }
@@ -68,10 +76,10 @@ public class CSVManager {
      * @throws FileNotFoundException if filename is invalid
      * @throws IOException if something else goes wrong
      */
-    public boolean open(String filename) throws FileNotFoundException, IOException {
+    public boolean open(String filename) {
         try {
             // initialize filereader and reset csv treemap
-            BufferedReader r = new BufferedReader(new FileReader("../csvs/" + filename + ".csv"));
+            BufferedReader r = new BufferedReader(new FileReader(activeDirectory + filename));
             activeCsv.clear();
             activeFilename = filename;
 
@@ -116,7 +124,7 @@ public class CSVManager {
     public boolean save() {
         try {
             // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter("../csvs/" + activeFilename + ".csv"));
+            PrintWriter pw = new PrintWriter(new FileWriter(activeDirectory + activeFilename));
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -148,7 +156,7 @@ public class CSVManager {
      */
     public boolean create(String filename) {
         try {
-            File file = new File("../csvs/" + filename + ".csv");
+            File file = new File(activeDirectory + filename);
             file.createNewFile();
             activeFilename = filename;
             isSaved = true;
@@ -248,6 +256,7 @@ public class CSVManager {
         return activeCsv.toString();
     }
 
+    // TODO - changeKey/copy need to be implemented
 
     /**
      * Changes the {@code key} of a line in the {@code TreeMap<String, ArrayList<String>>} to a {@code newKey}.
@@ -304,5 +313,23 @@ public class CSVManager {
      */
     public boolean getSaved() {
         return isSaved;
+    }
+
+    
+    /**
+     * Setter method for the active directory path.
+     * @param activeDirectory the active directory path
+     */
+    public void setDirectory(String activeDirectory) {
+        this.activeDirectory = activeDirectory;
+    }
+
+
+    /**
+     * Getter method for the active directory path.
+     * @return the active directory path
+     */
+    public String getDirectory() {
+        return activeDirectory;
     }
 }

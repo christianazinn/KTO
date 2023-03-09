@@ -11,10 +11,9 @@ import java.util.*;
 
 /**
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
- * Also handles all button interactions because it already has a handle on everything.
  * 
  * @author Christian Azinn
- * @version 0.1.0
+ * @version 0.1.1
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -32,14 +31,18 @@ public class KTOJF extends JFrame implements ActionListener {
     // Instance variable for the active branch
     private ArrayList<String> branch;
     private String activeSubbranch;
+    private boolean isTopLevel;
     
     // TEMP
-    private String defaultFilename = "todo";
+    private String defaultFilename = "todo.csv";
 
     public KTOJF() {
 
         // Create JFrame and title it
-        super("KTO ver 0.0.5 pre-alpha");
+        super("KTO ver 0.1.1 pre-alpha");
+
+        // Set UI style
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -51,10 +54,11 @@ public class KTOJF extends JFrame implements ActionListener {
         setJMenuBar(mmBar);
 
         // Instantiate CSVManager
-        csv = new CSVManager();
+        csv = new CSVManager("C:/Users/chris/OneDrive/Documents/kto/src/csvs/");
         try { csv.open(defaultFilename); } catch(Exception e) {} // TEMP
         branch = csv.getTopLevelBranch();
         activeSubbranch = "";
+        isTopLevel = true;
 
         // Get insets
         insets = getInsets();
@@ -73,7 +77,7 @@ public class KTOJF extends JFrame implements ActionListener {
         add(ssPane);
 
         // Test code for PrimaryScrollPane, TBR
-        ptPane = new PrimaryTextPane("This is a test PrimaryTextPane!");
+        ptPane = new PrimaryTextPane("");
         psPane = new PrimaryScrollPane(ptPane);
         size = psPane.getPreferredSize();
         psPane.setBounds(insets.left + Constants.GraphicsConstants.SBWIDTH, 
@@ -88,27 +92,29 @@ public class KTOJF extends JFrame implements ActionListener {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
-
     }
 
     
-    // TODO - correctly present backslash escaped commas, fix interpretation of backslash escaped brackets (sidebarPane?)
-    // TODO - stop replacing \, with \\, and so on (read: don't multiple escape)
-    // TODO - GET THIS SHIT TO WORK
     /**
      * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
      */
     public void save() {
         try {
-            String tbText = ptPane.getText().replaceAll("\n", "\\\\n")  
-                    .replaceAll("(?<!\\\\)(,)", "\\\\,").replaceAll("(?<!\\\\)(\\[)", "\\\\[").replaceAll("(?<!\\\\)(\\])", "\\\\]");
+            String tbText = ptPane.getText().replaceAll("\n", "\\\\n").replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[")
+                                            .replaceAll("\\]", "\\\\]");
             String finStr = activeSubbranch + "[" + tbText + "]";
             branch.set(sbPane.getButtonText().indexOf(activeSubbranch), finStr);
-        } catch(Exception e) {}
+        } catch(Exception e) {} // fail silently
         finally { csv.save(); }
     }
 
-    // TODO - deal with backslash escaping, top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!), creation of new keys
+    // TODO - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
+    // TODO - copying/renaming keys (right click menus!)
+    // TODO - have the user change directory
+    // TODO - separate actionPerformed into sub-methods?
+    // TODO - keybinds?
+    // TODO - comments lmao
+    // TODO - BOTTOM BAR CONTAINING OTHER INFO
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -119,10 +125,13 @@ public class KTOJF extends JFrame implements ActionListener {
         char tag = command.charAt(0);
         switch(tag) {
             case '@': // redirect downward
+                save();
+                ptPane.setText("");
                 locBar.directoryDown(command.substring(1));
                 branch = csv.getBranch(command.substring(1));
                 sbPane = new SidebarPane(branch, this, false);
                 ssPane.updateView(sbPane);
+                isTopLevel = false;
                 break;
             case '#': // menu option
                 switch(command.substring(1,5)) { // get menu
@@ -131,63 +140,96 @@ public class KTOJF extends JFrame implements ActionListener {
                             case "Save": // save case
                                 save();
                                 break;
+                            case "Open": // open case
+                                String file = JOptionPane.showInputDialog("Please input the filename:");
+                                if(file == null) break;
+                                if(!csv.open(file)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
+                                else {
+                                    save();
+                                    ptPane.setText("");
+                                    locBar.reset(file);
+                                    branch = csv.getTopLevelBranch();
+                                    sbPane = new SidebarPane(branch, this, true);
+                                    ssPane.updateView(sbPane);
+                                    isTopLevel = true;
+                                }
+                                break;
+                            case "New":  // create case
+                                String newFile = JOptionPane.showInputDialog("Please input the filename:");
+                                if(newFile == null) break;
+                                if(!csv.create(newFile)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
+                                else {
+                                    csv.open(newFile);
+                                    save();
+                                    ptPane.setText("");
+                                    locBar.reset(newFile);
+                                    branch = csv.getTopLevelBranch();
+                                    sbPane = new SidebarPane(branch, this, true);
+                                    ssPane.updateView(sbPane);
+                                    isTopLevel = true;
+                                }
+                                break;
                             default:
-                                System.out.println("Menu option error (2)!");
+                                JOptionPane.showMessageDialog(this, "An invalid menu option was received!", "Error", JOptionPane.ERROR_MESSAGE);
                                 break;
                         }
                         break;
                     default:
-                        System.out.println("Menu option error (1)!");
+                        JOptionPane.showMessageDialog(this, "An invalid menu option was received!", "Error", JOptionPane.ERROR_MESSAGE);
                         break;
                 }
                 break;
             case '“': // redirect upward (back option)
+                save();
+                ptPane.setText("");
                 String redirect = locBar.directoryUp();
-                if(redirect.equals("@")) branch = csv.getTopLevelBranch();
-                else branch = csv.getBranch(redirect);
-                sbPane = new SidebarPane(branch, this, redirect.equals("@"));
+                if(redirect.equals("@")) {
+                    branch = csv.getTopLevelBranch();
+                    isTopLevel = true;
+                } else {
+                    branch = csv.getBranch(redirect);
+                    isTopLevel = false;
+                }
+                sbPane = new SidebarPane(branch, this, isTopLevel);
                 ssPane.updateView(sbPane);
                 break;
             case '”': // new option
-                break;
-            case '*': // stf enter
+                String newLine = JOptionPane.showInputDialog("Please input the key:");
+                if(newLine == null) break;
+                if(newLine.equals("") || newLine.equals("\n")) JOptionPane.showMessageDialog(this, "Invalid key!", "Error", JOptionPane.ERROR_MESSAGE);
+                else if(isTopLevel) {
+                    newLine += "[]";
+                    csv.newBranch(newLine);
+                    branch.add(newLine);
+                    sbPane = new SidebarPane(branch, this, true);
+                    ssPane.updateView(sbPane);
+                } else {
+                    newLine += "[]";
+                    branch.add(newLine);
+                    sbPane = new SidebarPane(branch, this, false);
+                    ssPane.updateView(sbPane);
+                }
                 break;
             default:  // display text
                 activeSubbranch = command;
                 String fullText = branch.get(sbPane.getButtonText().indexOf(command));
 
                 // I can't believe all this code is needed just to backslash escape...
-                int bracketIdx;
                 ptPane.setText("");
 
-                while(true) {
-                    // Search for an open bracket
-                    bracketIdx = fullText.indexOf("[");
-                    // if there is no bracket for some reason, or it was not backslash escaped, stop looping
-                    if(bracketIdx == -1 || fullText.charAt(bracketIdx - 1) != '\\') break;
-                    // Continue looping if the bracket was backslash escaped
-                    fullText = fullText.substring(bracketIdx + 1);
-                }
-                if(bracketIdx == 0) break; // no bracket - empty
+                int bracketIdx = CSVManager.findNotBackslashed(fullText, "[");
+                if(bracketIdx == -1) break; // no bracket - empty (this isn't a display error it's just improperly formatted)
                 fullText = fullText.substring(bracketIdx + 1);
 
-                int relativePos = 0;
-                String tempText = fullText;
-                while(true) {
-                    // Search for a close bracket
-                    bracketIdx = tempText.indexOf("]");
-                    relativePos += bracketIdx;
-                    // if there is no bracket for some reason, or it was not backslash escaped, stop looping
-                    if(bracketIdx == -1 || bracketIdx == 0 || tempText.charAt(bracketIdx - 1) != '\\') break;
-                    // Continue looping if the bracket was backslash escaped
-                    tempText = tempText.substring(bracketIdx + 1);
-                    relativePos++;
+                bracketIdx = CSVManager.findNotBackslashed(fullText, "]");
+                if(bracketIdx == -1) { // no bracket - corrupted
+                    JOptionPane.showMessageDialog(this, "An invalid display input was received!", "Error", JOptionPane.ERROR_MESSAGE);
+                    break; 
                 }
-                bracketIdx = relativePos;
-                if(bracketIdx == -1 || bracketIdx == 0) break; // no bracket - corrupted
                 fullText = fullText.substring(0, bracketIdx);
 
                 // regex my behated
+                // any backslashes not escaped or newlines
                 fullText = fullText.replaceAll("(?<!\\\\)(\\\\)(?!n)", "");
 
                 // java is really dumb about this and apparently newline has to be a string literal?! oh my god
