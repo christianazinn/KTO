@@ -28,3 +28,7 @@ replay_pid*
 
 # Javadoc files
 javadoc/
+
+# Other things
+.VSCodeCounter/
+.vscode/

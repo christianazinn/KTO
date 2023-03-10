@@ -15,10 +15,10 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.3
+ * @version 0.1.4
  * @since 0.0.1
  */
-public class KTOJF extends JFrame implements ActionListener, DocumentListener {
+public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener {
 
     // Instance variable for the insets
     private Insets insets;
@@ -36,22 +36,23 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
     private boolean isTopLevel, autosaveOn, canListen;
     
     // TEMP
-    private String defaultFilename = "todo.csv";
+    private String defaultFilename, defaultDirectory, lookAndFeel;
+    private Component mostRecent;
 
 
 
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.3 alpha");
+        super("KTO ver 0.1.4 alpha");
 
-        // Set UI style
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
-        setIconImage(new ImageIcon("kto.png").getImage());
+        setIconImage(new ImageIcon("img/kto.png").getImage());
 
+        // Read settings
+        readSettings();
         // Initialize all components
         initComponents();
         // Set component bounds
@@ -62,7 +63,6 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         // Set all other instance variables
         activeSubbranch = "";
         isTopLevel = true;
-        autosaveOn = true;
         canListen = true;
 
         // For whatever reason this shows up double size on my screen
@@ -75,17 +75,54 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         setVisible(true);
     }
 
+
+    /**
+     * Reads settings from a .ini file.
+     */
+    private void readSettings() {
+        try {
+            // Initialize input
+            BufferedReader r = new BufferedReader(new FileReader("util/KTOJF.ini"));
+            r.readLine();
+
+            // Get default directory
+            String defDir = r.readLine();
+            defaultDirectory = defDir.substring(defDir.indexOf("=") + 1);
+
+            // Get default filename
+            String defFin = r.readLine();
+            defaultFilename = defFin.substring(defFin.indexOf("=") + 1);
+
+            // Set Look and Feel
+            String lnf = r.readLine();
+            lookAndFeel = lnf.substring(lnf.indexOf("=") + 1);
+            if(lookAndFeel.equals("Metal")) try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); } catch(Exception e) {} // fail silently
+            else try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
+
+            String as = r.readLine();
+            as = as.substring(as.indexOf("=") + 1);
+            if(as.equals("true")) autosaveOn = true;
+            else autosaveOn = false;
+
+            r.close();
+        } catch(Exception e) {
+            // Exit
+            System.out.println("Fatal error encountered when reading settings!");
+            System.exit(-1);
+        }
+    }
+
     
     /**
      * Initializes all components.
      */
     private void initComponents() {
-        mmBar = new MainMenuBar(this);
-        csv = new CSVManager("C:/Users/chris/OneDrive/Documents/kto/src/csvs/");
+        mmBar = new MainMenuBar(this, autosaveOn);
+        csv = new CSVManager(defaultDirectory);
         try { csv.open(defaultFilename); } catch(Exception e) {} // see below
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
         locBar = new LocationBar(defaultFilename);
-        sbPane = new SidebarPane(branch, this, true);
+        sbPane = new SidebarPane(branch, this, this, true);
         ssPane = new SidebarScrollPane(sbPane);
         ptPane = new PrimaryTextPane("", this);
         psPane = new PrimaryScrollPane(ptPane);
@@ -196,7 +233,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         // update top-level indicator
         isTopLevel = false;
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, isTopLevel);
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
 
         // mark as saved
@@ -219,7 +256,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         else branch = csv.getBranch(redirect);
 
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, isTopLevel);
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
 
         // mark as saved
@@ -248,7 +285,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         isTopLevel = true;
         
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, isTopLevel);
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
     }
 
@@ -277,7 +314,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         isTopLevel = true;
         
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, isTopLevel);
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
     }
 
@@ -306,16 +343,37 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
 
 
     /**
+     * Saves current options to default.
+     */
+    private void def() {
+        try {
+            PrintWriter pw = new PrintWriter(new FileWriter("util/KTOJF.ini"));
+            pw.println("defaultDirectory=" + csv.getDirectory());
+            pw.println("defaultFilename=" + csv.getF());
+            pw.println("lookAndFeel=" + lookAndFeel);
+            pw.println("autosaveOn=" + autosaveOn);
+            pw.close();
+        } catch(Exception e) {
+            error("options");
+        }
+    }
+
+
+    /**
      * Creates a new branch in the current file.
      */
     private void onew() {
         // gets the branch name
+        System.out.println(branch);
         String newLine = input("key", "New Branch");
         // immediately exits if the user pressed exit on the dialog
         if(newLine == null) return;
         // display error if the branch name is invalid
         if(newLine.equals("") || newLine.equals("\n")) {
             error("key");
+            return;
+        } else if(sbPane.getButtonText().contains(newLine)) {
+            JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -326,7 +384,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         branch.add(newLine);
         
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, isTopLevel);
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
 
         // save accordingly
@@ -370,6 +428,22 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
 
 
     /**
+     * Renames a subbranch or redirect.
+     */
+    private void rename() {
+        // TODOST - IMPLEMENT
+    }
+
+
+    /**
+     * Copies a subbranch.
+     */
+    private void copy() {
+        // TODOST - IMPLEMENT
+    }
+
+
+    /**
      * Debug method.
      */
     private void debug() {
@@ -378,10 +452,9 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
 
 
     // TODOST - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
-    // TODOST - copying/renaming keys (right click menus!)
-    // TODOMT - save options (eg directory, default file) to file
+    // TODOMT - manual save options (eg directory, default file) to file
+    // TODOMT - resize elements with window
     // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
-    // TODOLT - encode saved data? we do a little bit of trolling
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -415,6 +488,9 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
                                 if(saveAlert()) break;
                                 dir();
                                 break;
+                            case "Def": // default save case 
+                                def();
+                                break; // TODOMT - pop up a menu to individually change
                             case "Auto": // autosave toggle
                                 autosaveOn = !autosaveOn;
                                 break;
@@ -438,6 +514,18 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
             case '”': // new option
                 if(saveAlert()) break;
                 onew();
+                break;
+            case '*': // right click
+                switch(command.substring(1)) {
+                    case "Copy":
+                        copy();
+                        break;
+                    case "Rnme":
+                        rename();
+                        break;
+                    default:
+                        error("right click option");
+                }
                 break;
             default:  // display text
                 if(saveAlert()) break;
@@ -480,6 +568,67 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
         if(autosaveOn) save();
         else csv.setSaved(false);
     }}
+
+
+
+    // mouseListener things
+    
+
+    /**
+     * 
+     */
+    private void rightClickSidebar(MouseEvent e) {
+        SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(this);
+        sbrcm.show(e.getComponent(), e.getX(), e.getY());
+        mostRecent = e.getComponent();
+    } // TODOST - IMPLEMENT
+
+
+    /**
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
+     */
+    public void mousePressed(MouseEvent e) {
+        // nothing - implemented because interface goes brr
+    }
+
+
+    /**
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
+     */
+    public void mouseReleased(MouseEvent e) {
+        if(e.isPopupTrigger()) {
+            rightClickSidebar(e);
+        }
+    }
+
+
+    /**
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
+     */
+    public void mouseClicked(MouseEvent e) {
+        // nothing - implemented because interface goes brr
+    }
+
+
+    /**
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
+     */
+    public void mouseEntered(MouseEvent e) {
+        // nothing - implemented because interface goes brr
+    }
+
+
+    /**
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
+     */
+    public void mouseExited(MouseEvent e) {
+        // nothing - implemented because interface goes brr
+    }
 
 
 

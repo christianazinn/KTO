@@ -20,7 +20,7 @@ public class SidebarPane extends JPanel {
     private ArrayList<String> buttonText;
 
 
-    public SidebarPane(ArrayList<String> kiys, ActionListener a, boolean isTopLevel) {
+    public SidebarPane(ArrayList<String> kiys, ActionListener a, MouseListener m, boolean isTopLevel) {
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
@@ -47,7 +47,7 @@ public class SidebarPane extends JPanel {
             buttonText.add(keyText);
 
             // Create a new SidebarButton using that text and this object as an ActionListener (change that at some point?)
-            SidebarButton button = new SidebarButton(keyText, a);
+            SidebarButton button = new SidebarButton(keyText, a, m);
             // Positioning and adding
             button.setBounds(insets.left, insets.top + vOffset, size.width - 20, size.height);
             add(button);

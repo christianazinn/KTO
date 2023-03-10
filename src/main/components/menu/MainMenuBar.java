@@ -7,7 +7,7 @@ import java.awt.event.*;
  * {@code MainMenuBar} is a class to create a {@code JMenuBar} for the main window to use.
  * 
  * @author Christian Azinn
- * @version 0.2
+ * @version 0.3
  * @since 0.0.1
  */
 public class MainMenuBar extends JMenuBar {
@@ -17,10 +17,10 @@ public class MainMenuBar extends JMenuBar {
 
     // TODOLT - new menus
 
-    public MainMenuBar(ActionListener a) {
+    public MainMenuBar(ActionListener a, boolean autosaveOn) {
         // Create new [thing]Menu classes and add them here so this file stays organized
         // Also write getter method for each
-        fileMenu = new FileMenu(a);
+        fileMenu = new FileMenu(a, autosaveOn);
         add(fileMenu);
     }
 

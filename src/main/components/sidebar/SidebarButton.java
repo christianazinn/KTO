@@ -13,7 +13,7 @@ import java.awt.event.*;
  * @since 0.0.3
  */
 public class SidebarButton extends JButton {
-    public SidebarButton(String text, ActionListener a) {
+    public SidebarButton(String text, ActionListener a, MouseListener m) {
         // Default constructor - text will be set later
         super();
         // Set action command first to capture @ operator
@@ -46,6 +46,7 @@ public class SidebarButton extends JButton {
 
         // Add the indicated ActionListener
         addActionListener(a);
+        addMouseListener(m);
         // Set visibility
         setVisible(true);
     }
