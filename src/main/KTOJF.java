@@ -5,18 +5,20 @@ import components.sidebar.*;
 import util.*;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
+import java.io.*;
 
 /**
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.1a
+ * @version 0.1.2
  * @since 0.0.1
  */
-public class KTOJF extends JFrame implements ActionListener {
+public class KTOJF extends JFrame implements ActionListener, DocumentListener {
 
     // Instance variable for the insets
     private Insets insets;
@@ -32,6 +34,8 @@ public class KTOJF extends JFrame implements ActionListener {
     private ArrayList<String> branch;
     private String activeSubbranch;
     private boolean isTopLevel;
+    private boolean autosaveOn;
+    private boolean canListen;
     
     // TEMP
     private String defaultFilename = "todo.csv";
@@ -39,7 +43,7 @@ public class KTOJF extends JFrame implements ActionListener {
     public KTOJF() {
 
         // Create JFrame and title it
-        super("KTO ver 0.1.1a pre-alpha");
+        super("KTO ver 0.1.2 alpha");
 
         // Set UI style
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
@@ -59,6 +63,8 @@ public class KTOJF extends JFrame implements ActionListener {
         branch = csv.getTopLevelBranch();
         activeSubbranch = "";
         isTopLevel = true;
+        autosaveOn = true;
+        canListen = true;
 
         // Get insets
         insets = getInsets();
@@ -77,7 +83,7 @@ public class KTOJF extends JFrame implements ActionListener {
         add(ssPane);
 
         // Test code for PrimaryScrollPane, TBR
-        ptPane = new PrimaryTextPane("");
+        ptPane = new PrimaryTextPane("", this);
         psPane = new PrimaryScrollPane(ptPane);
         size = psPane.getPreferredSize();
         psPane.setBounds(insets.left + Constants.GraphicsConstants.SBWIDTH, 
@@ -100,7 +106,7 @@ public class KTOJF extends JFrame implements ActionListener {
      */
     public void save() {
         try {
-            String tbText = ptPane.getText().replaceAll("\n", "\\\\n").replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[")
+            String tbText = ptPane.getDocument().getText(0, ptPane.getDocument().getLength()).replaceAll("\n", "\\\\n").replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[")
                                             .replaceAll("\\]", "\\\\]");
             String finStr = activeSubbranch + "[" + tbText + "]";
             branch.set(sbPane.getButtonText().indexOf(activeSubbranch), finStr);
@@ -108,15 +114,13 @@ public class KTOJF extends JFrame implements ActionListener {
         finally { csv.save(); }
     }
 
-    // TODO - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
-    // TODO - copying/renaming keys (right click menus!)
-    // TODO - have the user change directory
-    // TODO - separate actionPerformed into sub-methods?
-    // TODO - keybinds?
-    // TODO - comments lmao
-    // TODO - BOTTOM BAR CONTAINING OTHER INFO
-
-    // FIXME stop naming all your input windows "Input" lmao
+    // TODOST - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
+    // TODOST - copying/renaming keys (right click menus!)
+    // TODOST - separate actionPerformed into sub-methods?
+    // TODOMT - save options (eg directory, default file) to file
+    // TODOLT - keybinds?
+    // TODOST - comments lmao
+    // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -127,13 +131,19 @@ public class KTOJF extends JFrame implements ActionListener {
         char tag = command.charAt(0);
         switch(tag) {
             case '@': // redirect downward
-                save();
+                if(!csv.getSaved()) {
+                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.NO_OPTION) return;
+                }
+                canListen = false;
                 ptPane.setText("");
                 locBar.directoryDown(command.substring(1));
                 branch = csv.getBranch(command.substring(1));
                 sbPane = new SidebarPane(branch, this, false);
                 ssPane.updateView(sbPane);
                 isTopLevel = false;
+                canListen = true;
+                csv.setSaved(true);
                 break;
             case '#': // menu option
                 switch(command.substring(1,5)) { // get menu
@@ -143,33 +153,64 @@ public class KTOJF extends JFrame implements ActionListener {
                                 save();
                                 break;
                             case "Open": // open case
-                                String file = JOptionPane.showInputDialog("Please input the filename:");
+                                if(!csv.getSaved()) {
+                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                                    if(result == JOptionPane.NO_OPTION) return;
+                                }
+                                String file = JOptionPane.showInputDialog(this, "Please input the filename:", "Open File", JOptionPane.QUESTION_MESSAGE);
                                 if(file == null) break;
                                 if(!csv.open(file)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
                                 else {
-                                    save();
+                                    canListen = false;
                                     ptPane.setText("");
                                     locBar.reset(file);
                                     branch = csv.getTopLevelBranch();
                                     sbPane = new SidebarPane(branch, this, true);
                                     ssPane.updateView(sbPane);
                                     isTopLevel = true;
+                                    canListen = true;
                                 }
                                 break;
                             case "New":  // create case
-                                String newFile = JOptionPane.showInputDialog("Please input the filename:");
+                                if(!csv.getSaved()) {
+                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                                    if(result == JOptionPane.NO_OPTION) return;
+                                }
+                                String newFile = JOptionPane.showInputDialog(this, "Please input the filename:", "New File", JOptionPane.QUESTION_MESSAGE);
                                 if(newFile == null) break;
                                 if(!csv.create(newFile)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
                                 else {
+                                    canListen = false;
                                     csv.open(newFile);
-                                    save();
                                     ptPane.setText("");
                                     locBar.reset(newFile);
                                     branch = csv.getTopLevelBranch();
                                     sbPane = new SidebarPane(branch, this, true);
                                     ssPane.updateView(sbPane);
                                     isTopLevel = true;
+                                    canListen = true;
                                 }
+                                break;
+                            case "Dir": // directory change case
+                                if(!csv.getSaved()) {
+                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                                    if(result == JOptionPane.NO_OPTION) return;
+                                }
+                                String newDir = JOptionPane.showInputDialog(this, "Please input the directory name:", "Change Directory", JOptionPane.QUESTION_MESSAGE);
+                                if(newDir == null) break;
+                                File dirCheck = new File(newDir);
+                                if(!dirCheck.exists()) JOptionPane.showMessageDialog(this, "Invalid directory!", "Error", JOptionPane.ERROR_MESSAGE);
+                                else {
+                                    newDir = newDir.replaceAll("\\\\", "/");
+                                    if(newDir.charAt(newDir.length() - 1) != '/') newDir += '/';
+                                    csv.setDirectory(newDir);
+                                }
+                                break;
+                            case "Auto": // autosave toggle
+                                autosaveOn = !autosaveOn;
+                                break;
+                            case "Dbug": // debug (test code goes here)
+                                System.out.println(csv.getDirectory());
                                 break;
                             default:
                                 JOptionPane.showMessageDialog(this, "An invalid menu option was received!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -182,7 +223,11 @@ public class KTOJF extends JFrame implements ActionListener {
                 }
                 break;
             case '“': // redirect upward (back option)
-                save();
+                if(!csv.getSaved()) {
+                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.NO_OPTION) return;
+                }
+                canListen = false;
                 ptPane.setText("");
                 String redirect = locBar.directoryUp();
                 if(redirect.equals("@")) {
@@ -192,27 +237,35 @@ public class KTOJF extends JFrame implements ActionListener {
                     branch = csv.getBranch(redirect);
                     isTopLevel = false;
                 }
+                canListen = true;
                 sbPane = new SidebarPane(branch, this, isTopLevel);
                 ssPane.updateView(sbPane);
+                csv.setSaved(true);
                 break;
             case '”': // new option
-                String newLine = JOptionPane.showInputDialog("Please input the key:");
-                if(newLine == null) break;
-                if(newLine.equals("") || newLine.equals("\n")) JOptionPane.showMessageDialog(this, "Invalid key!", "Error", JOptionPane.ERROR_MESSAGE);
-                else if(isTopLevel) {
-                    newLine += "[]";
-                    csv.newBranch(newLine);
-                    branch.add(newLine);
-                    sbPane = new SidebarPane(branch, this, true);
-                    ssPane.updateView(sbPane);
-                } else {
-                    newLine += "[]";
-                    branch.add(newLine);
-                    sbPane = new SidebarPane(branch, this, false);
-                    ssPane.updateView(sbPane);
+                if(!csv.getSaved()) {
+                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.NO_OPTION) return;
                 }
+                String newLine = JOptionPane.showInputDialog(this, "Please input the key:", "New Branch", JOptionPane.QUESTION_MESSAGE);
+                if(newLine == null) break;
+                if(newLine.equals("") || newLine.equals("\n")) {
+                    JOptionPane.showMessageDialog(this, "Invalid key!", "Error", JOptionPane.ERROR_MESSAGE);
+                    break;
+                }
+                newLine += "[]";
+                if(isTopLevel) csv.newBranch(newLine); // TODOMT - fix this to work with top-level non-redirects
+                branch.add(newLine);
+                sbPane = new SidebarPane(branch, this, true);
+                ssPane.updateView(sbPane);
+                csv.setSaved(false);
                 break;
             default:  // display text
+                if(!csv.getSaved()) {
+                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.NO_OPTION) return;
+                }
+                canListen = false;
                 activeSubbranch = command;
                 String fullText = branch.get(sbPane.getButtonText().indexOf(command));
 
@@ -243,7 +296,40 @@ public class KTOJF extends JFrame implements ActionListener {
                 }
 
                 ptPane.append(fullText.substring(last));
+                canListen = true;
                 break;
+        }
+    }
+
+
+    /**
+     * Handles DocumentEvents.
+     * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
+     */
+    public void insertUpdate(DocumentEvent e) {
+        if(canListen) {
+            if(autosaveOn) save();
+            else csv.setSaved(false);
+        }
+    }
+    /**
+     * Handles DocumentEvents.
+     * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
+     */
+    public void removeUpdate(DocumentEvent e) {
+        if(canListen) {
+            if(autosaveOn) save();
+            else csv.setSaved(false);
+        }
+    }
+    /**
+     * Handles DocumentEvents.
+     * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
+     */
+    public void changedUpdate(DocumentEvent e) {
+        if(canListen) {
+            if(autosaveOn) save();
+            else csv.setSaved(false);
         }
     }
 

@@ -7,7 +7,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.4
+ * @version 1.5
  * @since 0.0.1
  */
 public class CSVManager {
@@ -33,10 +33,10 @@ public class CSVManager {
         };
 
         // set instance variables
-        activeCsv = new TreeMap<String, ArrayList<String>>(c);
-        activeFilename = "";
+        this.activeCsv = new TreeMap<String, ArrayList<String>>(c);
+        this.activeFilename = "";
         this.activeDirectory = activeDirectory;
-        isSaved = false;
+        this.isSaved = false;
     }
 
     // REMINDER THAT FILE DIRECTORIES ARE RELATIVE TO KTOJF.java NOT CSVManager.java
@@ -103,7 +103,7 @@ public class CSVManager {
             }
             // flush and return
             r.close();
-            isSaved = true;
+            this.isSaved = true;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -135,7 +135,7 @@ public class CSVManager {
             }
             // flush and return
             pw.close();
-            isSaved = true;
+            this.isSaved = true;
             return true;
         }  catch(Exception e) { return false; }
     }
@@ -151,7 +151,7 @@ public class CSVManager {
             File file = new File(activeDirectory + filename);
             file.createNewFile();
             activeFilename = filename;
-            isSaved = true;
+            this.isSaved = true;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -165,7 +165,7 @@ public class CSVManager {
     public boolean clearBranch(String key) {
         try {
             activeCsv.get(key).clear();
-            isSaved = false;
+            this.isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -183,7 +183,7 @@ public class CSVManager {
             ArrayList<String> keys = activeCsv.get(key);
             if(idx >= keys.size()) return -2;
             keys.remove(idx);
-            isSaved = false;
+            this.isSaved = false;
             return 0;
         } catch(Exception e) { return -1; }
     }
@@ -195,7 +195,7 @@ public class CSVManager {
      */
     public void newBranch(String key) {
         activeCsv.put(key, new ArrayList<String>());
-        isSaved = false;
+        this.isSaved = false;
     }
 
 
@@ -207,7 +207,7 @@ public class CSVManager {
     public boolean deleteBranch(String key) {
         try {
             activeCsv.remove(key);
-            isSaved = false;
+            this.isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -248,7 +248,7 @@ public class CSVManager {
         return activeCsv.toString();
     }
 
-    // TODO - changeKey/copy need to be implemented
+    // TODOLT - changeKey/copy need to be implemented
 
     /**
      * Changes the {@code key} of a line in the {@code TreeMap<String, ArrayList<String>>} to a {@code newKey}.
@@ -260,7 +260,7 @@ public class CSVManager {
         try {
             activeCsv.put(newKey, activeCsv.get(key));
             activeCsv.remove(key);
-            isSaved = false;
+            this.isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -275,7 +275,7 @@ public class CSVManager {
     public boolean copy(String key, String newKey) {
         try {
             activeCsv.put(newKey, activeCsv.get(key));
-            isSaved = false;
+            this.isSaved = false;
             return true;
         } catch(Exception e) { return false; }
     }
@@ -300,11 +300,20 @@ public class CSVManager {
 
 
     /**
+     * Setter method for the save status of the {@code TreeMap<String, ArrayList<String>>}.
+     * @param saved the save status of the {@code TreeMap<String, ArrayList<String>>}
+     */
+    public void setSaved(boolean saved) {
+        this.isSaved = saved;
+    }
+
+
+    /**
      * Getter method for the save status of the {@code TreeMap<String, ArrayList<String>>}.
      * @return the save status of the {@code TreeMap<String, ArrayList<String>>}
      */
     public boolean getSaved() {
-        return isSaved;
+        return this.isSaved;
     }
 
     

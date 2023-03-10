@@ -16,7 +16,7 @@ public class MainMenuBar extends JMenuBar {
     // Instance variables for each Menu
     private JMenu fileMenu;
 
-    // TODO - new menus
+    // TODOLT - new menus
 
     public MainMenuBar(ActionListener a) {
         // Create new [thing]Menu classes and add them here so this file stays organized
