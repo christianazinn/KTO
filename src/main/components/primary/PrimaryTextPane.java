@@ -13,7 +13,6 @@ import javax.swing.event.*;
  * @since 0.0.4
  */
 public class PrimaryTextPane extends JTextArea {
-
     public PrimaryTextPane(String initialText, DocumentListener d) {
         super();
         setFont(Constants.FontConstants.SFONT);
@@ -21,8 +20,8 @@ public class PrimaryTextPane extends JTextArea {
         setLineWrap(true);
         setWrapStyleWord(true);
         getDocument().addDocumentListener(d);
-        // there doesn't seem to be much of a reason right now to create a custom class but it's more versatile for later
     }
+    // there doesn't seem to be much of a reason right now to create a custom class but it's more versatile for later
 
     // getText() is a built-in function
 }

@@ -15,7 +15,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.2
+ * @version 0.1.3
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener, DocumentListener {
@@ -30,65 +30,40 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
     private PrimaryTextPane ptPane;
     private PrimaryScrollPane psPane;
     private CSVManager csv;
-    // Instance variable for the active branch
+    // Instance variables for other things
     private ArrayList<String> branch;
     private String activeSubbranch;
-    private boolean isTopLevel;
-    private boolean autosaveOn;
-    private boolean canListen;
+    private boolean isTopLevel, autosaveOn, canListen;
     
     // TEMP
     private String defaultFilename = "todo.csv";
 
-    public KTOJF() {
 
+
+
+    public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.2 alpha");
+        super("KTO ver 0.1.3 alpha");
 
         // Set UI style
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
-
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
         setIconImage(new ImageIcon("kto.png").getImage());
 
-        // Instantiate MainMenuBar and set as menu bar
-        mmBar = new MainMenuBar(this);
-        setJMenuBar(mmBar);
-
-        // Instantiate CSVManager
-        csv = new CSVManager("C:/Users/chris/OneDrive/Documents/kto/src/csvs/");
-        try { csv.open(defaultFilename); } catch(Exception e) {} // TEMP
-        branch = csv.getTopLevelBranch();
+        // Initialize all components
+        initComponents();
+        // Set component bounds
+        setBounds();
+        // Add components
+        addComponents();
+        
+        // Set all other instance variables
         activeSubbranch = "";
         isTopLevel = true;
         autosaveOn = true;
         canListen = true;
-
-        // Get insets
-        insets = getInsets();
-
-        // Create LocationBar, position properly, and add
-        locBar = new LocationBar(defaultFilename);
-        Dimension size = locBar.getPreferredSize();
-        locBar.setBounds(insets.left, insets.top, size.width, size.height);
-        add(locBar);
-
-        // Test code for SidebarScrollPane, TBR
-        sbPane = new SidebarPane(branch, this, true);
-        ssPane = new SidebarScrollPane(sbPane);
-        size = ssPane.getPreferredSize();
-        ssPane.setBounds(insets.left, insets.top + Constants.GraphicsConstants.LOCBARHEIGHT, size.width, size.height);
-        add(ssPane);
-
-        // Test code for PrimaryScrollPane, TBR
-        ptPane = new PrimaryTextPane("", this);
-        psPane = new PrimaryScrollPane(ptPane);
-        size = psPane.getPreferredSize();
-        psPane.setBounds(insets.left + Constants.GraphicsConstants.SBWIDTH, 
-                    insets.top + Constants.GraphicsConstants.PSPVOFFSET, size.width, size.height);
-        add(psPane);
 
         // For whatever reason this shows up double size on my screen
         // Set size
@@ -102,25 +77,311 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
 
     
     /**
+     * Initializes all components.
+     */
+    private void initComponents() {
+        mmBar = new MainMenuBar(this);
+        csv = new CSVManager("C:/Users/chris/OneDrive/Documents/kto/src/csvs/");
+        try { csv.open(defaultFilename); } catch(Exception e) {} // see below
+        branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
+        locBar = new LocationBar(defaultFilename);
+        sbPane = new SidebarPane(branch, this, true);
+        ssPane = new SidebarScrollPane(sbPane);
+        ptPane = new PrimaryTextPane("", this);
+        psPane = new PrimaryScrollPane(ptPane);
+    }
+
+
+    /**
+     * Adds all necessary components.
+     */
+    private void addComponents() {
+        setJMenuBar(mmBar);
+        add(locBar);
+        add(ssPane);
+        add(psPane);
+    }
+
+
+    /**
+     * Sets bounds of all necessary components.
+     */
+    private void setBounds() {
+        // Get insets
+        insets = getInsets();
+
+        // Create LocationBar, position properly, and add
+        Dimension size = locBar.getPreferredSize();
+        locBar.setBounds(insets.left, insets.top, size.width, size.height);
+        
+        // Test code for SidebarScrollPane, TBR
+        size = ssPane.getPreferredSize();
+        ssPane.setBounds(insets.left, insets.top + Constants.GraphicsConstants.LOCBARHEIGHT, size.width, size.height);
+        
+        // Test code for PrimaryScrollPane, TBR
+        size = psPane.getPreferredSize();
+        psPane.setBounds(insets.left + Constants.GraphicsConstants.SBWIDTH, 
+                    insets.top + Constants.GraphicsConstants.PSPVOFFSET, size.width, size.height);
+    }
+
+
+
+
+    // ActionListener things
+    
+    /**
      * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
      */
-    public void save() {
+    private void save() {
         try {
+            // process regexes in one line because why not
             String tbText = ptPane.getDocument().getText(0, ptPane.getDocument().getLength()).replaceAll("\n", "\\\\n").replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[")
                                             .replaceAll("\\]", "\\\\]");
+            // format and set to arraylist
             String finStr = activeSubbranch + "[" + tbText + "]";
             branch.set(sbPane.getButtonText().indexOf(activeSubbranch), finStr);
         } catch(Exception e) {} // fail silently
-        finally { csv.save(); }
+        finally { csv.save(); } // actually save regardless of whether the formatting was successful
     }
+    
+
+    /**
+     * Handles the display of save alerts.
+     * @return whether to break or not
+     */
+    private boolean saveAlert() {
+        // check whether a dialog needs to be shown at all
+        if(!csv.getSaved()) {
+            int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
+            if(result == JOptionPane.NO_OPTION) return true; // returns true if the user doesn't want to continue
+            return false; // returns false if the user wants to continue
+        }
+        return false; // returns false if it didn't need to be called
+    }
+
+
+    /**
+     * Handles the display of error messages.
+     * @param message the error message
+     */
+    private void error(String message) {
+        JOptionPane.showMessageDialog(this, "Invalid " + message + "!", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+
+    /**
+     * Handles the display of input prompts.
+     * @param message the input message
+     * @param title the window title
+     * @return the user input
+     */
+    private String input(String message, String title) {
+        return JOptionPane.showInputDialog(this, "Please input the " + message + ":", title, JOptionPane.QUESTION_MESSAGE);
+    }
+
+
+    /**
+     * Handles down redirects.
+     * @param command the {@link ActionEvent} command
+     */
+    private void redirDown(String command) {
+        // reset textbox
+        ptPane.setText("");
+
+        // update location bar
+        locBar.directoryDown(command.substring(1));
+        // update active branch
+        branch = csv.getBranch(command.substring(1));
+
+        // update top-level indicator
+        isTopLevel = false;
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // mark as saved
+        csv.setSaved(true);
+    }
+
+
+    /**
+     * Handles up redirects.
+     */
+    private void redirUp() {
+        // reset textbox
+        ptPane.setText("");
+
+        // update location bar
+        String redirect = locBar.directoryUp();
+        // check whether the destination is top-level and update active branch accordingly
+        isTopLevel = redirect.equals("@");
+        if(isTopLevel) branch = csv.getTopLevelBranch();
+        else branch = csv.getBranch(redirect);
+
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // mark as saved
+        csv.setSaved(true);
+    }
+
+
+    /**
+     * Opens a new file and sets it up.
+     */
+    private void open() {
+        // gets the filename
+        String file = input("filename", "Open File");
+        // immediately exits if user pressed exit on the dialog
+        if(file == null) return;
+        // display error message if the file could not be opened
+        if(!csv.open(file)) {
+            error("filename");
+            return;
+        }
+
+        // reset textbox, location bar, branch location, and top-level indicator
+        ptPane.setText("");
+        locBar.reset(file);
+        branch = csv.getTopLevelBranch();
+        isTopLevel = true;
+        
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+    }
+
+
+    /**
+     * Creates a new file and sets it up.
+     */
+    private void fnew() {
+        // gets the filename
+        String file = input("filename", "Open File");
+        // immediately exits if user pressed exit on the dialog
+        if(file == null) return;
+        // display error message if the file could not be created
+        if(!csv.create(file)) {
+            error("filename");
+            return;
+        }
+
+        // opens the new file
+        csv.open(file);
+
+        // reset textbox, location bar, branch location, and top-level indicator
+        ptPane.setText("");
+        locBar.reset(file);
+        branch = csv.getTopLevelBranch();
+        isTopLevel = true;
+        
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+    }
+
+
+    /**
+     * Changes the active working directory.
+     */
+    private void dir() {
+        // gets the directory name
+        String newDir = input("directory name", "Change Directory");
+        // immediately exits if user pressed exit on the dialog
+        if(newDir == null) return;
+        // display error message if the directory does not exist
+        if(!(new File(newDir).exists())) {
+            error("directory");
+            return;
+        }
+        
+        // replace backslashes with forward slashes for Java String formatting
+        newDir = newDir.replaceAll("\\\\", "/");
+        // ensure the path ends in a forward slash
+        if(newDir.charAt(newDir.length() - 1) != '/') newDir += '/';
+        // set the working directory in the CSVManager
+        csv.setDirectory(newDir);
+    }
+
+
+    /**
+     * Creates a new branch in the current file.
+     */
+    private void onew() {
+        // gets the branch name
+        String newLine = input("key", "New Branch");
+        // immediately exits if the user pressed exit on the dialog
+        if(newLine == null) return;
+        // display error if the branch name is invalid
+        if(newLine.equals("") || newLine.equals("\n")) {
+            error("key");
+            return;
+        }
+
+        // formatting technicality
+        newLine += "[]";
+        // create a new branch in the CSVManager and add the line
+        if(isTopLevel) csv.newBranch(newLine); // TODOMT - fix this to work with top-level non-redirects
+        branch.add(newLine);
+        
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // save accordingly
+        if(autosaveOn) save();
+        else csv.setSaved(false);
+    }
+
+
+    /**
+     * Displays the text of a selected subbranch.
+     * @param command the {@link ActionEvent} command
+     */
+    private void display(String command) {
+        // set active subbranch
+        activeSubbranch = command;
+        // get the text to be displayed
+        String fullText = branch.get(sbPane.getButtonText().indexOf(command));
+        // reset textbox
+        ptPane.setText("");
+
+        // search for the open bracket indicating start of text area and truncate before it
+        int bracketIdx = CSVManager.findNotBackslashed(fullText, "[");
+        if(bracketIdx == -1) return; // no bracket - empty (this isn't a display error it's just improperly formatted)
+        fullText = fullText.substring(bracketIdx + 1);
+
+        // search for the close bracket indicating end of text area and truncate after it
+        bracketIdx = CSVManager.findNotBackslashed(fullText, "]");
+        if(bracketIdx == -1) { // no bracket - corrupted
+            error("display input");
+            return; 
+        }
+        fullText = fullText.substring(0, bracketIdx);
+
+        // regex my behated
+        // change any backslashes not escaped or newlines, and any newlines
+        fullText = fullText.replaceAll("(?<!\\\\)(\\\\)(?!n)", "").replaceAll("(?<!\\\\)(\\\\n)","\n");
+
+        // set the textbox to the formatted text
+        ptPane.setText(fullText);
+    }
+
+
+    /**
+     * Debug method.
+     */
+    private void debug() {
+        // do whatever
+    }
+
 
     // TODOST - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
     // TODOST - copying/renaming keys (right click menus!)
-    // TODOST - separate actionPerformed into sub-methods?
     // TODOMT - save options (eg directory, default file) to file
-    // TODOLT - keybinds?
-    // TODOST - comments lmao
     // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
+    // TODOLT - encode saved data? we do a little bit of trolling
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -129,21 +390,11 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
     public void actionPerformed(ActionEvent a) {
         String command = a.getActionCommand();
         char tag = command.charAt(0);
+        canListen = false;
         switch(tag) {
             case '@': // redirect downward
-                if(!csv.getSaved()) {
-                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                    if(result == JOptionPane.NO_OPTION) return;
-                }
-                canListen = false;
-                ptPane.setText("");
-                locBar.directoryDown(command.substring(1));
-                branch = csv.getBranch(command.substring(1));
-                sbPane = new SidebarPane(branch, this, false);
-                ssPane.updateView(sbPane);
-                isTopLevel = false;
-                canListen = true;
-                csv.setSaved(true);
+                if(saveAlert()) break;
+                redirDown(command);
                 break;
             case '#': // menu option
                 switch(command.substring(1,5)) { // get menu
@@ -153,185 +404,84 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener {
                                 save();
                                 break;
                             case "Open": // open case
-                                if(!csv.getSaved()) {
-                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                                    if(result == JOptionPane.NO_OPTION) return;
-                                }
-                                String file = JOptionPane.showInputDialog(this, "Please input the filename:", "Open File", JOptionPane.QUESTION_MESSAGE);
-                                if(file == null) break;
-                                if(!csv.open(file)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
-                                else {
-                                    canListen = false;
-                                    ptPane.setText("");
-                                    locBar.reset(file);
-                                    branch = csv.getTopLevelBranch();
-                                    sbPane = new SidebarPane(branch, this, true);
-                                    ssPane.updateView(sbPane);
-                                    isTopLevel = true;
-                                    canListen = true;
-                                }
+                                if(saveAlert()) break;
+                                open();
                                 break;
                             case "New":  // create case
-                                if(!csv.getSaved()) {
-                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                                    if(result == JOptionPane.NO_OPTION) return;
-                                }
-                                String newFile = JOptionPane.showInputDialog(this, "Please input the filename:", "New File", JOptionPane.QUESTION_MESSAGE);
-                                if(newFile == null) break;
-                                if(!csv.create(newFile)) JOptionPane.showMessageDialog(this, "Invalid filename!", "Error", JOptionPane.ERROR_MESSAGE);
-                                else {
-                                    canListen = false;
-                                    csv.open(newFile);
-                                    ptPane.setText("");
-                                    locBar.reset(newFile);
-                                    branch = csv.getTopLevelBranch();
-                                    sbPane = new SidebarPane(branch, this, true);
-                                    ssPane.updateView(sbPane);
-                                    isTopLevel = true;
-                                    canListen = true;
-                                }
+                                if(saveAlert()) break;
+                                fnew();
                                 break;
                             case "Dir": // directory change case
-                                if(!csv.getSaved()) {
-                                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                                    if(result == JOptionPane.NO_OPTION) return;
-                                }
-                                String newDir = JOptionPane.showInputDialog(this, "Please input the directory name:", "Change Directory", JOptionPane.QUESTION_MESSAGE);
-                                if(newDir == null) break;
-                                File dirCheck = new File(newDir);
-                                if(!dirCheck.exists()) JOptionPane.showMessageDialog(this, "Invalid directory!", "Error", JOptionPane.ERROR_MESSAGE);
-                                else {
-                                    newDir = newDir.replaceAll("\\\\", "/");
-                                    if(newDir.charAt(newDir.length() - 1) != '/') newDir += '/';
-                                    csv.setDirectory(newDir);
-                                }
+                                if(saveAlert()) break;
+                                dir();
                                 break;
                             case "Auto": // autosave toggle
                                 autosaveOn = !autosaveOn;
                                 break;
-                            case "Dbug": // debug (test code goes here)
-                                System.out.println(csv.getDirectory());
+                            case "Dbug": // debug
+                                debug();
                                 break;
                             default:
-                                JOptionPane.showMessageDialog(this, "An invalid menu option was received!", "Error", JOptionPane.ERROR_MESSAGE);
+                                error("menu option");
                                 break;
                         }
                         break;
                     default:
-                        JOptionPane.showMessageDialog(this, "An invalid menu option was received!", "Error", JOptionPane.ERROR_MESSAGE);
+                        error("menu option");
                         break;
                 }
                 break;
             case '“': // redirect upward (back option)
-                if(!csv.getSaved()) {
-                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                    if(result == JOptionPane.NO_OPTION) return;
-                }
-                canListen = false;
-                ptPane.setText("");
-                String redirect = locBar.directoryUp();
-                if(redirect.equals("@")) {
-                    branch = csv.getTopLevelBranch();
-                    isTopLevel = true;
-                } else {
-                    branch = csv.getBranch(redirect);
-                    isTopLevel = false;
-                }
-                canListen = true;
-                sbPane = new SidebarPane(branch, this, isTopLevel);
-                ssPane.updateView(sbPane);
-                csv.setSaved(true);
+                if(saveAlert()) break;
+                redirUp();
                 break;
             case '”': // new option
-                if(!csv.getSaved()) {
-                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                    if(result == JOptionPane.NO_OPTION) return;
-                }
-                String newLine = JOptionPane.showInputDialog(this, "Please input the key:", "New Branch", JOptionPane.QUESTION_MESSAGE);
-                if(newLine == null) break;
-                if(newLine.equals("") || newLine.equals("\n")) {
-                    JOptionPane.showMessageDialog(this, "Invalid key!", "Error", JOptionPane.ERROR_MESSAGE);
-                    break;
-                }
-                newLine += "[]";
-                if(isTopLevel) csv.newBranch(newLine); // TODOMT - fix this to work with top-level non-redirects
-                branch.add(newLine);
-                sbPane = new SidebarPane(branch, this, true);
-                ssPane.updateView(sbPane);
-                csv.setSaved(false);
+                if(saveAlert()) break;
+                onew();
                 break;
             default:  // display text
-                if(!csv.getSaved()) {
-                    int result = JOptionPane.showConfirmDialog(this, "Changes have not been saved! Continue?", "Confirm Continue", JOptionPane.YES_NO_OPTION);
-                    if(result == JOptionPane.NO_OPTION) return;
-                }
-                canListen = false;
-                activeSubbranch = command;
-                String fullText = branch.get(sbPane.getButtonText().indexOf(command));
-
-                // I can't believe all this code is needed just to backslash escape...
-                ptPane.setText("");
-
-                int bracketIdx = CSVManager.findNotBackslashed(fullText, "[");
-                if(bracketIdx == -1) break; // no bracket - empty (this isn't a display error it's just improperly formatted)
-                fullText = fullText.substring(bracketIdx + 1);
-
-                bracketIdx = CSVManager.findNotBackslashed(fullText, "]");
-                if(bracketIdx == -1) { // no bracket - corrupted
-                    JOptionPane.showMessageDialog(this, "An invalid display input was received!", "Error", JOptionPane.ERROR_MESSAGE);
-                    break; 
-                }
-                fullText = fullText.substring(0, bracketIdx);
-
-                // regex my behated
-                // any backslashes not escaped or newlines
-                fullText = fullText.replaceAll("(?<!\\\\)(\\\\)(?!n)", "");
-
-                // java is really dumb about this and apparently newline has to be a string literal?! oh my god
-                int last = 0;
-                for(int i = 0; i < fullText.length() - 1; i++) if(fullText.substring(i, i+2).equals("\\n")) {
-                    ptPane.append(fullText.substring(last, i));
-                    ptPane.append("\n");
-                    last = i+2;
-                }
-
-                ptPane.append(fullText.substring(last));
-                canListen = true;
+                if(saveAlert()) break;
+                display(command);
                 break;
         }
+        canListen = true;
     }
+
+
+
+
+    // DocumentListener things
+
+    /**
+     * Handles DocumentEvents.
+     * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
+     */
+    public void insertUpdate(DocumentEvent e) { if(canListen) {
+        if(autosaveOn) save();
+        else csv.setSaved(false);
+    }}
 
 
     /**
      * Handles DocumentEvents.
      * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
      */
-    public void insertUpdate(DocumentEvent e) {
-        if(canListen) {
-            if(autosaveOn) save();
-            else csv.setSaved(false);
-        }
-    }
+    public void removeUpdate(DocumentEvent e) { if(canListen) {
+        if(autosaveOn) save();
+        else csv.setSaved(false);
+    }}
+
+
     /**
      * Handles DocumentEvents.
      * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
      */
-    public void removeUpdate(DocumentEvent e) {
-        if(canListen) {
-            if(autosaveOn) save();
-            else csv.setSaved(false);
-        }
-    }
-    /**
-     * Handles DocumentEvents.
-     * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
-     */
-    public void changedUpdate(DocumentEvent e) {
-        if(canListen) {
-            if(autosaveOn) save();
-            else csv.setSaved(false);
-        }
-    }
+    public void changedUpdate(DocumentEvent e) { if(canListen) {
+        if(autosaveOn) save();
+        else csv.setSaved(false);
+    }}
+
+
 
 
     /**

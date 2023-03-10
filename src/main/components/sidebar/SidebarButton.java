@@ -14,7 +14,6 @@ import java.awt.event.*;
  */
 public class SidebarButton extends JButton {
     public SidebarButton(String text, ActionListener a) {
-
         // Default constructor - text will be set later
         super();
         // Set action command first to capture @ operator

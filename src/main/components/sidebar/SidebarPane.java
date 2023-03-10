@@ -1,6 +1,6 @@
 package components.sidebar;
 
-import util.Constants;
+import util.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,7 @@ import java.util.*;
  * {@code SidebarPane} is a class to create a {@link JPanel} to be used as the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.4
+ * @version 0.5
  * @since 0.0.3
  */
 public class SidebarPane extends JPanel {
@@ -19,53 +19,31 @@ public class SidebarPane extends JPanel {
     // Instance variable for the button command prompts, for reference by actionPerformed
     private ArrayList<String> buttonText;
 
+
     public SidebarPane(ArrayList<String> kiys, ActionListener a, boolean isTopLevel) {
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
         // I messed up and forgot ArrayLists were PBR so this is a hotfix lmao
         ArrayList<String> keys = new ArrayList<String>(kiys);
-
-        // Set up values for button positioning
-        int vOffset = 0;
-        Insets insets = getInsets();
-        Dimension size = new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SBHEIGHT);
-
-        // Add the "add" button value - the funny MS Word back double quote, which should never be input anywhere else
+        // Add the "add" and "back" button values - the funny MS Word double quotes, which should never be input anywhere else
         keys.add("”");
-        // Add the "back" button value - the funny MS Word forward double quote, which should never be input anywhere else, but not at top level
         if(!isTopLevel) keys.add("“");
-
-        // Set size (don't ask)
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, keys.size() * Constants.GraphicsConstants.SBHEIGHT + (keys.size() - 1) * Constants.GraphicsConstants.VPADDING));
-
         // Initialize the ArrayList for button command prompts
         buttonText = new ArrayList<String>(keys.size());
 
+        // Set up values for button positioning and size
+        int vOffset = 0;
+        Insets insets = getInsets();
+        Dimension size = new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SBHEIGHT);
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, keys.size() * Constants.GraphicsConstants.SBHEIGHT + (keys.size() - 1) * Constants.GraphicsConstants.VPADDING));
+
         // Iterate through each of the Strings in the ArrayList
         for(String str : keys) {
-            // Since keys are formatted key[text], extract the key
-            int relativeIdx = 0;
-            String tempstr = str;
-
-            // I can't believe all this code is needed just to backslash escape...
-            while(true) {
-                // Search for an open bracket
-                int bracketIdx = tempstr.indexOf("[") + 1;
-                relativeIdx += bracketIdx;
-
-                // if there is no bracket for some reason, or it was not backslash escaped, stop looping
-                if(relativeIdx == 0 || tempstr.charAt(bracketIdx - 2) != '\\') break;
-
-                // Continue looping if the bracket was backslash escaped
-                tempstr = tempstr.substring(bracketIdx);
-            }
-
-            // Copy the key into a new String
+            // Isolate key and add to buttonText ArrayList
+            int idx = CSVManager.findNotBackslashed(str, "[");
             String keyText = str;
-            // If there was a bracket present, truncate the String
-            if(relativeIdx != 0) keyText = str.substring(0, relativeIdx - 1);
-            // Add that String to the button command prompt ArrayList
+            if(idx != -1) keyText = str.substring(0, idx);
             buttonText.add(keyText);
 
             // Create a new SidebarButton using that text and this object as an ActionListener (change that at some point?)
@@ -76,7 +54,6 @@ public class SidebarPane extends JPanel {
             // Adding vertical offset for the next button
             vOffset += Constants.GraphicsConstants.SBHEIGHT + Constants.GraphicsConstants.VPADDING;
         }
-
         // Set visible (duh)
         setVisible(true);
     }

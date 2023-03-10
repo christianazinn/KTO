@@ -6,7 +6,7 @@ import java.awt.*;
  * {@code Constants} is a container class for all constants, each individually categorized in their own class.
  * 
  * @author Christian Azinn
- * @version 0.4
+ * @version 0.5
  * @since 0.0.2
  */
 public class Constants {
@@ -16,7 +16,7 @@ public class Constants {
      * {@code GraphicsConstants} is a container class for graphics-related constants such as padding values.
      * 
      * @author Christian Azinn
-     * @version 0.4
+     * @version 0.5
      * @since 0.0.2
      */
     public static class GraphicsConstants {
@@ -33,8 +33,7 @@ public class Constants {
         public static final int SBWIDTH = 160;
         public static final int SBHEIGHT = 40;
 
-        public static final int STWIDTH = 120;
-        public static final int STHEIGHT = 20;
+        public static final Dimension MENUBSIZE = new Dimension(100, 25);
         
         public static final int PSPVOFFSET = (MENUBARHEIGHT + LOCBARHEIGHT) / 2;
     }
@@ -44,7 +43,7 @@ public class Constants {
      * {@code FontConstants} is a container class for font-related constants such as font size and font name.
      * 
      * @author Christian Azinn
-     * @version 0.2
+     * @version 0.3
      * @since 0.0.2
      */
     public static class FontConstants {
@@ -65,5 +64,7 @@ public class Constants {
         public static final Font SITAL = new Font(FONTNAME, Font.ITALIC, SMALLFONTSIZE);
         public static final Font MITAL = new Font(FONTNAME, Font.ITALIC, MEDIUMFONTSIZE);
         public static final Font LITAL = new Font(FONTNAME, Font.ITALIC, LARGEFONTSIZE);
+
+        public static final Font FFONT = new Font(FONTNAME, Font.PLAIN, 12);
     }
 }
