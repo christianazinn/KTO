@@ -7,7 +7,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.5
+ * @version 1.6
  * @since 0.0.1
  */
 public class CSVManager {
@@ -50,23 +50,24 @@ public class CSVManager {
     public static int findNotBackslashed(String line, String search) {
         int relativePos = 0;
         int idx = 0;
+        boolean wasLastNegOne = false;
         while(true) {
             idx = line.indexOf(search);
             relativePos += idx;
-            if(idx <= 0 || line.charAt(idx - 1) != '\\') break;
+            if(wasLastNegOne) return -1;
+            wasLastNegOne = idx < 0;
+            if((idx > 0) && line.charAt(idx - 1) != '\\') return relativePos;
+            else if(idx == 0) return idx;
             line = line.substring(idx + 1);
             relativePos++;
         }
-        return relativePos;
-    }
+    } // TODOMT - cleanup
 
     /**
      * Reads a comma-separated value file with the specified filename into a {@code TreeMap<String, ArrayList<String>}.
      * I can't be bothered to set up Maven to use OpenCSV, so I wrote my own methods.
      * @param filename the name of the file to be read (sans file extension)
      * @return whether or not the file read was successful
-     * @throws FileNotFoundException if filename is invalid
-     * @throws IOException if something else goes wrong
      */
     public boolean open(String filename) {
         try {
@@ -148,8 +149,12 @@ public class CSVManager {
      */
     public boolean create(String filename) {
         try {
-            File file = new File(activeDirectory + filename);
+            String pathName = activeDirectory + filename;
+            File file = new File(pathName);
             file.createNewFile();
+            PrintWriter pw = new PrintWriter(new FileWriter(pathName));
+            pw.println("!,");
+            pw.close();
             activeFilename = filename;
             this.isSaved = true;
             return true;
@@ -235,9 +240,15 @@ public class CSVManager {
      * @return the top level branch of the {@code TreeMap<String, ArrayList<String>>}
      */
     public ArrayList<String> getTopLevelBranch() {
-        ArrayList<String> keys = new ArrayList<String>(activeCsv.keySet().size());
-        for(String key : activeCsv.keySet()) keys.add("@" + key);
-        return keys;
+        
+        try {
+            if(activeCsv.get("!") != null) return activeCsv.get("!");
+            else {
+                newBranch("!");
+                activeCsv.get("!").add("README[Hey\\, it looks like your file is improperly formatted. Create an @link to an existing branch to get back to where you were.]");
+                return activeCsv.get("!");
+            }
+        } catch(Exception e) { return new ArrayList<String>(); }
     }
 
 
@@ -257,9 +268,27 @@ public class CSVManager {
      */
     public boolean changeKey(String key, String newKey) {
         try {
-            activeCsv.put(newKey, activeCsv.get(key));
+            ArrayList<String> branch = new ArrayList<String>(activeCsv.get(key));
             activeCsv.remove(key);
+            activeCsv.put(newKey, branch);
             this.isSaved = false;
+            return true;
+        } catch(Exception e) { return false; }
+    }
+
+
+    /**
+     * Changes all instances of a specific {@code String} to another one.
+     * @param search the {@code String} to search for
+     * @param replacement the {@code String} to replace the search target
+     * @return whether or not the change was successful
+     */
+    public boolean changeAllRefs(String search, String replacement) {
+        try {
+            for(String key : activeCsv.keySet()) {
+                ArrayList<String> arr = activeCsv.get(key);
+                for(int i = 0; i < arr.size(); i++) arr.set(i, arr.get(i).replaceAll(search, replacement));
+            }
             return true;
         } catch(Exception e) { return false; }
     }

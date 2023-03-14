@@ -15,7 +15,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.4
+ * @version 0.1.5
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener {
@@ -44,7 +44,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.4 alpha");
+        super("KTO ver 0.1.5 alpha");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -119,7 +119,10 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     private void initComponents() {
         mmBar = new MainMenuBar(this, autosaveOn);
         csv = new CSVManager(defaultDirectory);
-        try { csv.open(defaultFilename); } catch(Exception e) {} // see below
+        if(!csv.open(defaultFilename)) {
+            JOptionPane.showMessageDialog(this, "Default file does not exist! Please manually edit KTOJF.ini.", "Error", JOptionPane.ERROR_MESSAGE); 
+            System.exit(-1);
+        }
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
         locBar = new LocationBar(defaultFilename);
         sbPane = new SidebarPane(branch, this, this, true);
@@ -346,7 +349,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Saves current options to default.
      */
     private void def() {
-        try {
+        try { // TODOMT - pop up a menu to individually change
             PrintWriter pw = new PrintWriter(new FileWriter("util/KTOJF.ini"));
             pw.println("defaultDirectory=" + csv.getDirectory());
             pw.println("defaultFilename=" + csv.getF());
@@ -364,12 +367,11 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      */
     private void onew() {
         // gets the branch name
-        System.out.println(branch);
         String newLine = input("key", "New Branch");
         // immediately exits if the user pressed exit on the dialog
         if(newLine == null) return;
         // display error if the branch name is invalid
-        if(newLine.equals("") || newLine.equals("\n")) {
+        if(newLine.equals("") || newLine.equals("\n") || newLine.charAt(newLine.length() - 1) == '\\') {
             error("key");
             return;
         } else if(sbPane.getButtonText().contains(newLine)) {
@@ -377,14 +379,14 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             return;
         }
 
-        // formatting technicality
-        newLine += "[]";
         // create a new branch in the CSVManager and add the line
-        if(isTopLevel) csv.newBranch(newLine); // TODOMT - fix this to work with top-level non-redirects
-        branch.add(newLine);
+        if(isTopLevel && newLine.charAt(0) == '@') csv.newBranch(newLine.substring(1));
+        // formatting technicality
+        branch.add(newLine + "[]");
         
         // create new SidebarPane and update SidebarScrollPane
-        sbPane = new SidebarPane(branch, this, this, isTopLevel);
+        if(isTopLevel) sbPane = new SidebarPane(csv.getTopLevelBranch(), this, this, true);
+        else sbPane = new SidebarPane(branch, this, this, false);
         ssPane.setViewportView(sbPane);
 
         // save accordingly
@@ -431,7 +433,40 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Renames a subbranch or redirect.
      */
     private void rename() {
-        // TODOST - IMPLEMENT
+        String newName = input("new name", "Rename");
+        if(newName == null) return;
+        else if(sbPane.getButtonText().contains(newName)) {
+            JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        } else if(newName.charAt(newName.length() - 1) == '\\') {
+            error("key");
+            return;
+        }
+
+        SidebarButton target = (SidebarButton) mostRecent;
+        String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // changing type from subbranch to redirect is not supported
+        if((newName.charAt(0) == '@' && target.getText().charAt(0) != '>') || (newName.charAt(0) != '@' && target.getText().charAt(0) == '>')) {
+            error("branch type");
+            return;
+        } 
+
+        target.update(newName);
+        int idx = sbPane.getButtonText().indexOf(branchTarget);
+        sbPane.getButtonText().set(idx, newName);
+        System.out.println(sbPane.getButtonText());
+        System.out.println(newName);
+        if(isTopLevel) csv.changeKey(branchTarget.substring(1), newName.substring(1));
+        String tbr = branch.get(idx);
+        int fnb = CSVManager.findNotBackslashed(tbr, "[");
+        if(fnb != -1) branch.set(idx, newName + tbr.substring(fnb));
+        else branch.set(idx, newName);
+
+        csv.changeAllRefs(branchTarget, newName); // FIXME - backslashes?
+
+        if(autosaveOn) save();
+        else csv.setSaved(false);
     }
 
 
@@ -440,6 +475,22 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      */
     private void copy() {
         // TODOST - IMPLEMENT
+        System.out.println("Copy received.");
+        System.out.println(mostRecent);
+
+        if(autosaveOn) save();
+        else csv.setSaved(false);
+    }
+
+
+    /**
+     * Deletes a subbranch.
+     */
+    private void delete() {
+        // TODOST - IMPLEMENT
+
+        if(autosaveOn) save();
+        else csv.setSaved(false);
     }
 
 
@@ -451,10 +502,9 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     }
 
 
-    // TODOST - deal with top-level textboxes, non-top-level keys/redirects (update getBranch call to newBranch!!!)
-    // TODOMT - manual save options (eg directory, default file) to file
     // TODOMT - resize elements with window
     // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
+    // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
      * Manages all button {@link ActionEvent}s.
@@ -490,7 +540,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
                                 break;
                             case "Def": // default save case 
                                 def();
-                                break; // TODOMT - pop up a menu to individually change
+                                break; 
                             case "Auto": // autosave toggle
                                 autosaveOn = !autosaveOn;
                                 break;
@@ -523,8 +573,12 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
                     case "Rnme":
                         rename();
                         break;
+                    case "Delt":
+                        delete();
+                        break;
                     default:
                         error("right click option");
+                        break;
                 }
                 break;
             default:  // display text
@@ -571,7 +625,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
 
 
-    // mouseListener things
+    // MouseListener things
     
 
     /**
@@ -581,7 +635,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(this);
         sbrcm.show(e.getComponent(), e.getX(), e.getY());
         mostRecent = e.getComponent();
-    } // TODOST - IMPLEMENT
+    }
 
 
     /**

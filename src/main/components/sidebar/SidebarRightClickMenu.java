@@ -9,7 +9,7 @@ import java.awt.event.*;
  * {@code SidebarRightClickMenu} is a class to create a right-click menu for an {@link SidebarButton}.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.2
  * @since 0.1.4
  */
 public class SidebarRightClickMenu extends JPopupMenu {
@@ -32,5 +32,13 @@ public class SidebarRightClickMenu extends JPopupMenu {
         add(renameItem);
         renameItem.setActionCommand(prefix + "Rnme");
         renameItem.addActionListener(a);
+        
+        JMenuItem deleteItem = new JMenuItem("Delete...");
+        deleteItem.getAccessibleContext().setAccessibleDescription("Deletes this subbranch.");
+        deleteItem.setFont(Constants.FontConstants.FFONT);
+        deleteItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        add(deleteItem);
+        deleteItem.setActionCommand(prefix + "Delt");
+        deleteItem.addActionListener(a);
     }
 }
