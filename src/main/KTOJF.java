@@ -15,7 +15,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.5
+ * @version 0.1.6
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener {
@@ -33,7 +33,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     // Instance variables for other things
     private ArrayList<String> branch;
     private String activeSubbranch;
-    private boolean isTopLevel, autosaveOn, canListen;
+    private boolean isTopLevel, autosaveOn, originalAutosave, canListen;
     
     // TEMP
     private String defaultFilename, defaultDirectory, lookAndFeel;
@@ -44,7 +44,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.5 alpha");
+        super("KTO ver 0.1.6 alpha");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,6 +68,8 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         // For whatever reason this shows up double size on my screen
         // Set size
         setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.SCREENHEIGHT));
+        // ...but this isn't double size?
+        setMinimumSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.SCREENHEIGHT));
 
         // Ensure all elements are shown on screen, center window on screen, and set visible
         pack();
@@ -103,11 +105,12 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             as = as.substring(as.indexOf("=") + 1);
             if(as.equals("true")) autosaveOn = true;
             else autosaveOn = false;
+            originalAutosave = autosaveOn;
 
             r.close();
         } catch(Exception e) {
             // Exit
-            System.out.println("Fatal error encountered when reading settings!");
+            JOptionPane.showMessageDialog(this, "Fatal error encountered when reading settings!", "Error", JOptionPane.ERROR_MESSAGE); 
             System.exit(-1);
         }
     }
@@ -121,7 +124,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         csv = new CSVManager(defaultDirectory);
         if(!csv.open(defaultFilename)) {
             JOptionPane.showMessageDialog(this, "Default file does not exist! Please manually edit KTOJF.ini.", "Error", JOptionPane.ERROR_MESSAGE); 
-            System.exit(-1);
+            System.exit(-1); // TODOST - make the user input valid default file/directory
         }
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
         locBar = new LocationBar(defaultFilename);
@@ -349,12 +352,25 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Saves current options to default.
      */
     private void def() {
-        try { // TODOMT - pop up a menu to individually change
+        try {
+            Object[] options = {"Directory", "Filename", "L&F", "Autosave", "All"};
+            String sv = (String) JOptionPane.showInputDialog(this, "Save default:", "Save Default Settings", JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+            if(sv == null) return;
+
             PrintWriter pw = new PrintWriter(new FileWriter("util/KTOJF.ini"));
-            pw.println("defaultDirectory=" + csv.getDirectory());
-            pw.println("defaultFilename=" + csv.getF());
-            pw.println("lookAndFeel=" + lookAndFeel);
-            pw.println("autosaveOn=" + autosaveOn);
+            pw.println("[Options]");
+
+            if(sv.equals("Directory") || sv.equals("All")) pw.println("defaultDirectory=" + csv.getDirectory());
+            else pw.println("defaultDirectory=" + defaultDirectory);
+
+            if(sv.equals("Filename") || sv.equals("All")) pw.println("defaultFilename=" + csv.getF());
+            else pw.println("defaultFilename=" + defaultFilename);
+
+            pw.println("lookAndFeel=" + lookAndFeel); // there's no option to change L&F yet
+
+            if(sv.equals("Autosave") || sv.equals("All")) pw.println("autosaveOn=" + autosaveOn);
+            else pw.println("autosaveOn=" + originalAutosave);
+
             pw.close();
         } catch(Exception e) {
             error("options");
@@ -383,6 +399,10 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         if(isTopLevel && newLine.charAt(0) == '@') csv.newBranch(newLine.substring(1));
         // formatting technicality
         branch.add(newLine + "[]");
+        
+        // sort arraylists
+        Collections.sort(sbPane.getButtonText());
+        Collections.sort(branch);
         
         // create new SidebarPane and update SidebarScrollPane
         if(isTopLevel) sbPane = new SidebarPane(csv.getTopLevelBranch(), this, this, true);
@@ -433,16 +453,20 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Renames a subbranch or redirect.
      */
     private void rename() {
+        // get user input
         String newName = input("new name", "Rename");
         if(newName == null) return;
+        // check for duplicate
         else if(sbPane.getButtonText().contains(newName)) {
             JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
+        // ensure key validity
         } else if(newName.charAt(newName.length() - 1) == '\\') {
             error("key");
             return;
         }
 
+        // really convoluted way of getting the source button using polymorphic typecasting
         SidebarButton target = (SidebarButton) mostRecent;
         String branchTarget = target.getText().replaceAll("> ", "@");
 
@@ -452,19 +476,35 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             return;
         } 
 
+        // update button name
         target.update(newName);
+
+        // update button text in SidebarPane ArrayList
         int idx = sbPane.getButtonText().indexOf(branchTarget);
         sbPane.getButtonText().set(idx, newName);
-        System.out.println(sbPane.getButtonText());
-        System.out.println(newName);
-        if(isTopLevel) csv.changeKey(branchTarget.substring(1), newName.substring(1));
+
+        // change target key
+        csv.changeKey(branchTarget.substring(1), newName.substring(1));
+        
+        // change all references to target key
+        branchTarget = branchTarget.replaceAll("\\\\", "\\\\\\\\");
+        newName = newName.replaceAll("\\\\", "\\\\\\\\");
+        csv.changeAllRefs(branchTarget, newName);
+
+        // update key in active branch
         String tbr = branch.get(idx);
         int fnb = CSVManager.findNotBackslashed(tbr, "[");
         if(fnb != -1) branch.set(idx, newName + tbr.substring(fnb));
         else branch.set(idx, newName);
 
-        csv.changeAllRefs(branchTarget, newName); // FIXME - backslashes?
+        // sort arraylist
+        Collections.sort(branch);
 
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // save
         if(autosaveOn) save();
         else csv.setSaved(false);
     }
@@ -474,10 +514,35 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Copies a subbranch.
      */
     private void copy() {
-        // TODOST - IMPLEMENT
-        System.out.println("Copy received.");
-        System.out.println(mostRecent);
+        // get user input
+        String newName = input("new name", "Copy");
+        if(newName == null) return;
+        // check for duplicate
+        else if(sbPane.getButtonText().contains(newName)) {
+            JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        // ensure key validity
+        } else if(newName.charAt(newName.length() - 1) == '\\') {
+            error("key");
+            return;
+        }
 
+        // really convoluted way of getting the source button using polymorphic typecasting
+        SidebarButton target = (SidebarButton) mostRecent;
+        String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // do the actual copying
+        String copy = branch.get(sbPane.getButtonText().indexOf(branchTarget));
+        branch.add(newName + copy.substring(CSVManager.findNotBackslashed(copy, "[")));
+
+        // sort arraylist
+        Collections.sort(branch);
+
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // save
         if(autosaveOn) save();
         else csv.setSaved(false);
     }
@@ -487,8 +552,21 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Deletes a subbranch.
      */
     private void delete() {
-        // TODOST - IMPLEMENT
+        // confirm deletion
+        if(JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this branch?", "Confirm Delete", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) return;
 
+        // really convoluted way of getting the source button using polymorphic typecasting
+        SidebarButton target = (SidebarButton) mostRecent;
+        String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // do the actual removal
+        branch.remove(sbPane.getButtonText().indexOf(branchTarget));
+        
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+
+        // save
         if(autosaveOn) save();
         else csv.setSaved(false);
     }
@@ -504,6 +582,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
     // TODOMT - resize elements with window
     // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
+    // TODOLT - FAVORITING
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
@@ -629,10 +708,11 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     
 
     /**
-     * 
+     * Handles {@link SidebarButton} right-click events.
      */
     private void rightClickSidebar(MouseEvent e) {
-        SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(this);
+        SidebarButton source = (SidebarButton) e.getSource();
+        SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(this, source.getText().charAt(0) == '>');
         sbrcm.show(e.getComponent(), e.getX(), e.getY());
         mostRecent = e.getComponent();
     }
@@ -642,47 +722,27 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Handles MouseEvents.
      * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    public void mousePressed(MouseEvent e) {
-        // nothing - implemented because interface goes brr
-    }
-
-
+    public void mouseReleased(MouseEvent e) { if(e.isPopupTrigger()) rightClickSidebar(e); } // TODOLT - handle other right click events
     /**
      * Handles MouseEvents.
      * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    public void mouseReleased(MouseEvent e) {
-        if(e.isPopupTrigger()) {
-            rightClickSidebar(e);
-        }
-    }
-
-
+    public void mousePressed(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
     /**
      * Handles MouseEvents.
      * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    public void mouseClicked(MouseEvent e) {
-        // nothing - implemented because interface goes brr
-    }
-
-
+    public void mouseClicked(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
     /**
      * Handles MouseEvents.
      * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    public void mouseEntered(MouseEvent e) {
-        // nothing - implemented because interface goes brr
-    }
-
-
+    public void mouseEntered(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
     /**
      * Handles MouseEvents.
      * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    public void mouseExited(MouseEvent e) {
-        // nothing - implemented because interface goes brr
-    }
+    public void mouseExited(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
 
 
 
