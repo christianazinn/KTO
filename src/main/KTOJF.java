@@ -15,10 +15,10 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.6
+ * @version 0.1.7
  * @since 0.0.1
  */
-public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener {
+public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener, ComponentListener {
 
     // Instance variable for the insets
     private Insets insets;
@@ -44,7 +44,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.6 alpha");
+        super("KTO ver 0.1.7 alpha");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -70,6 +70,9 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.SCREENHEIGHT));
         // ...but this isn't double size?
         setMinimumSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.SCREENHEIGHT));
+
+        // Set component listener to handle screen things
+        addComponentListener(this);
 
         // Ensure all elements are shown on screen, center window on screen, and set visible
         pack();
@@ -101,6 +104,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             if(lookAndFeel.equals("Metal")) try { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); } catch(Exception e) {} // fail silently
             else try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch(Exception e) {} // fail silently
 
+            // Get autosave
             String as = r.readLine();
             as = as.substring(as.indexOf("=") + 1);
             if(as.equals("true")) autosaveOn = true;
@@ -123,11 +127,11 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         mmBar = new MainMenuBar(this, autosaveOn);
         csv = new CSVManager(defaultDirectory);
         if(!csv.open(defaultFilename)) {
-            JOptionPane.showMessageDialog(this, "Default file does not exist! Please manually edit KTOJF.ini.", "Error", JOptionPane.ERROR_MESSAGE); 
-            System.exit(-1); // TODOST - make the user input valid default file/directory
+            while(!csv.open(defaultFilename)) defaultFilename = JOptionPane.showInputDialog(this, "Default file does not exist! Please enter a valid filename.", "Error", JOptionPane.ERROR_MESSAGE); 
+            def(false);
         }
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
-        locBar = new LocationBar(defaultFilename);
+        locBar = new LocationBar(defaultFilename, this);
         sbPane = new SidebarPane(branch, this, this, true);
         ssPane = new SidebarScrollPane(sbPane);
         ptPane = new PrimaryTextPane("", this);
@@ -151,7 +155,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      */
     private void setBounds() {
         // Get insets
-        insets = getInsets();
+        insets = new Insets(0,0,0,0);
 
         // Create LocationBar, position properly, and add
         Dimension size = locBar.getPreferredSize();
@@ -269,6 +273,26 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         csv.setSaved(true);
     }
 
+    
+    /**
+     * Handles all-the-way-up redirects.
+     */
+    private void redirTop() {
+        // reset textbox
+        ptPane.setText("");
+
+        // update location bar
+        while(true) if(locBar.directoryUp().equals("@")) break;
+        branch = csv.getTopLevelBranch();
+        
+        // create new SidebarPane and update SidebarScrollPane
+        sbPane = new SidebarPane(branch, this, this, isTopLevel);
+        ssPane.setViewportView(sbPane);
+        
+        // mark as saved
+        csv.setSaved(true);
+    }
+
 
     /**
      * Opens a new file and sets it up.
@@ -351,11 +375,14 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     /**
      * Saves current options to default.
      */
-    private void def() {
+    private void def(boolean ask) {
         try {
-            Object[] options = {"Directory", "Filename", "L&F", "Autosave", "All"};
-            String sv = (String) JOptionPane.showInputDialog(this, "Save default:", "Save Default Settings", JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-            if(sv == null) return;
+            String sv;
+            if(ask) {
+                Object[] options = {"Directory", "Filename", "L&F", "Autosave", "All"};
+                sv = (String) JOptionPane.showInputDialog(this, "Save default:", "Save Default Settings", JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                if(sv == null) return;
+            } else sv = "";
 
             PrintWriter pw = new PrintWriter(new FileWriter("util/KTOJF.ini"));
             pw.println("[Options]");
@@ -580,7 +607,6 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
     }
 
 
-    // TODOMT - resize elements with window
     // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
     // TODOLT - FAVORITING
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
@@ -618,7 +644,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
                                 dir();
                                 break;
                             case "Def": // default save case 
-                                def();
+                                def(true);
                                 break; 
                             case "Auto": // autosave toggle
                                 autosaveOn = !autosaveOn;
@@ -643,6 +669,9 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             case '”': // new option
                 if(saveAlert()) break;
                 onew();
+                break;
+            case '$': // redirect back to top option
+                redirTop();
                 break;
             case '*': // right click
                 switch(command.substring(1)) {
@@ -705,44 +734,40 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
 
     // MouseListener things
-    
-
     /**
-     * Handles {@link SidebarButton} right-click events.
+     * Handles MouseEvents.
+     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
      */
-    private void rightClickSidebar(MouseEvent e) {
+    public void mouseReleased(MouseEvent e) { if(e.isPopupTrigger()) {
         SidebarButton source = (SidebarButton) e.getSource();
         SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(this, source.getText().charAt(0) == '>');
         sbrcm.show(e.getComponent(), e.getX(), e.getY());
         mostRecent = e.getComponent();
+    }}
+    public void mousePressed(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+
+
+
+
+    // ComponentListener things
+    /**
+     * Handles ComponentEvents.
+     * @param e a {@link ComponentEvent} sent by a resize call
+     */
+    public void componentResized(ComponentEvent e) {
+        Dimension newSize = e.getComponent().getBounds().getSize();
+        locBar.setSize(new Dimension((int) newSize.getWidth(), Constants.GraphicsConstants.LOCBARHEIGHT));
+        locBar.setLabelSize();
+        ssPane.setSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (int) newSize.getHeight() - (Constants.GraphicsConstants.LOCBARHEIGHT + Constants.GraphicsConstants.MENUBARHEIGHT) * 2 + 7));
+        psPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4));
+        ptPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4));
     }
-
-
-    /**
-     * Handles MouseEvents.
-     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
-     */
-    public void mouseReleased(MouseEvent e) { if(e.isPopupTrigger()) rightClickSidebar(e); } // TODOLT - handle other right click events
-    /**
-     * Handles MouseEvents.
-     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
-     */
-    public void mousePressed(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
-    /**
-     * Handles MouseEvents.
-     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
-     */
-    public void mouseClicked(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
-    /**
-     * Handles MouseEvents.
-     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
-     */
-    public void mouseEntered(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
-    /**
-     * Handles MouseEvents.
-     * @param e a {@link MouseEvent} sent by a right click event - {@link SidebarButton} most likely
-     */
-    public void mouseExited(MouseEvent e) { /* nothing - implemented because interface goes brr */ }
+    public void componentHidden(ComponentEvent e) {}
+    public void componentMoved(ComponentEvent e) {}
+    public void componentShown(ComponentEvent e) {}
 
 
 

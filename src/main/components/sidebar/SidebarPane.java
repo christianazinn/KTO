@@ -11,7 +11,7 @@ import java.util.*;
  * {@code SidebarPane} is a class to create a {@link JPanel} to be used as the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.5
+ * @version 0.6
  * @since 0.0.3
  */
 public class SidebarPane extends JPanel {
@@ -28,7 +28,10 @@ public class SidebarPane extends JPanel {
         ArrayList<String> keys = new ArrayList<String>(kiys);
         // Add the "add" and "back" button values - the funny MS Word double quotes, which should never be input anywhere else
         keys.add("”");
-        if(!isTopLevel) keys.add("“");
+        if(!isTopLevel) {
+            keys.add("“");
+            keys.add("$");
+        }
         // Initialize the ArrayList for button command prompts
         buttonText = new ArrayList<String>(keys.size());
 

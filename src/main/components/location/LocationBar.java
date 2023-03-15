@@ -9,7 +9,7 @@ import java.awt.*;
  * {@code LocationBar} is a class to create a simple bar at the top of the screen to indicate where the user is.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 0.4
  * @since 0.0.2
  */
 public class LocationBar extends JPanel {
@@ -19,22 +19,26 @@ public class LocationBar extends JPanel {
     private String text;
     private int directoriesDown;
     private JLabel label;
+    private Component parent;
+
+    // Instance variables for insets and size
+    private Insets insets;
+    private Dimension size;
 
 
-    public LocationBar(String filename) {
+    public LocationBar(String filename, Component parent) {
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
         // Get panel insets
-        Insets insets = getInsets();
+        insets = getInsets();
+        this.parent = parent;
         // Set preferred size using GraphicsConstants
         setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.LOCBARHEIGHT));
 
         // Create label, set font, and set position/size (read text lmao)
-        label = new JLabel("For some reason this placeholder text has to be really long or otherwise the label doesn't fully show. There's probably a method to fix this but I'm lazy so I'm just writing this placeholder text.");
+        label = new JLabel();
         label.setFont(Constants.FontConstants.SBOLD);
-        Dimension size = label.getPreferredSize();
-        label.setBounds(Constants.GraphicsConstants.HPADDING + insets.left, insets.top, size.width, size.height);
         add(label);
         
         // Set other instance variables
@@ -54,6 +58,7 @@ public class LocationBar extends JPanel {
         // Add directory name to text and set text
         text += " > " + directory;
         label.setText(text);
+        setLabelSize();
 
         // Keep track of how many directories in it is
         directoriesDown++;
@@ -84,6 +89,7 @@ public class LocationBar extends JPanel {
 
         // Update label text
         label.setText(text);
+        setLabelSize();
 
         // Check if it's at directory 0
         if(directoriesDown == 0) return "@";
@@ -99,5 +105,17 @@ public class LocationBar extends JPanel {
         text = "> " + filename;
         directoriesDown = 0;
         label.setText(text);
+        setLabelSize();
+    }
+
+    /**
+     * Changes the label size.
+     */
+    public void setLabelSize() {
+        size = label.getPreferredSize();
+        int w = (int) size.getWidth();
+        int h = (int) size.getHeight();
+        if(w > parent.getBounds().getWidth() - 10) w = (int) parent.getBounds().getWidth() - 10;
+        label.setBounds(Constants.GraphicsConstants.HPADDING + insets.left, insets.top, w, h);
     }
 }
