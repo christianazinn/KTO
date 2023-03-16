@@ -1,4 +1,4 @@
-import components.location.*;
+import components.bars.*;
 import components.menu.*;
 import components.primary.*;
 import components.sidebar.*;
@@ -20,11 +20,10 @@ import java.io.*;
  */
 public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener, ComponentListener {
 
-    // Instance variable for the insets
-    private Insets insets;
     // More instance variables for every component created
     private MainMenuBar mmBar;
     private LocationBar locBar;
+    private BottomBar botBar;
     private SidebarPane sbPane;
     private SidebarScrollPane ssPane;
     private PrimaryTextPane ptPane;
@@ -132,6 +131,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         }
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
         locBar = new LocationBar(defaultFilename, this);
+        botBar = new BottomBar("Running KTO ver 0.1.7 alpha, 03/15/2023 build | Figure out what else to put here!", this);
         sbPane = new SidebarPane(branch, this, this, true);
         ssPane = new SidebarScrollPane(sbPane);
         ptPane = new PrimaryTextPane("", this);
@@ -143,8 +143,10 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Adds all necessary components.
      */
     private void addComponents() {
+        // Add everything
         setJMenuBar(mmBar);
         add(locBar);
+        add(botBar);
         add(ssPane);
         add(psPane);
     }
@@ -154,21 +156,21 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Sets bounds of all necessary components.
      */
     private void setBounds() {
-        // Get insets
-        insets = new Insets(0,0,0,0);
-
-        // Create LocationBar, position properly, and add
+        // Position location bar
         Dimension size = locBar.getPreferredSize();
-        locBar.setBounds(insets.left, insets.top, size.width, size.height);
+        locBar.setBounds(0, 0, size.width, size.height);
+
+        // Position bottom bar
+        size = botBar.getPreferredSize();
+        botBar.setBounds(0, Constants.GraphicsConstants.SCREENHEIGHT - 76, size.width, size.height);
         
-        // Test code for SidebarScrollPane, TBR
+        // Position sidebar scroll pane
         size = ssPane.getPreferredSize();
-        ssPane.setBounds(insets.left, insets.top + Constants.GraphicsConstants.LOCBARHEIGHT, size.width, size.height);
+        ssPane.setBounds(0, Constants.GraphicsConstants.BARHEIGHT + 2, size.width, size.height - Constants.GraphicsConstants.BARHEIGHT - 2);
         
-        // Test code for PrimaryScrollPane, TBR
+        // Position primary scroll pane
         size = psPane.getPreferredSize();
-        psPane.setBounds(insets.left + Constants.GraphicsConstants.SBWIDTH, 
-                    insets.top + Constants.GraphicsConstants.PSPVOFFSET, size.width, size.height);
+        psPane.setBounds(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.PSPVOFFSET, size.width, size.height - Constants.GraphicsConstants.BARHEIGHT);
     }
 
 
@@ -288,7 +290,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         // create new SidebarPane and update SidebarScrollPane
         sbPane = new SidebarPane(branch, this, this, isTopLevel);
         ssPane.setViewportView(sbPane);
-        
+
         // mark as saved
         csv.setSaved(true);
     }
@@ -399,9 +401,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
             else pw.println("autosaveOn=" + originalAutosave);
 
             pw.close();
-        } catch(Exception e) {
-            error("options");
-        }
+        } catch(Exception e) { error("options"); }
     }
 
 
@@ -603,12 +603,13 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      * Debug method.
      */
     private void debug() {
-        // do whatever
+        System.out.println(botBar.getBounds());
+        System.out.println(locBar.getBounds());
     }
 
 
-    // TODOLT - BOTTOM BAR CONTAINING OTHER INFO
-    // TODOLT - FAVORITING
+    // TODOST - HANDLE DEFAULT ACTIVATED TEXTBOXES / ALWAYS WRITE SOMETHING SOMEWHERE
+    // TODOMT - FAVORITING
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
@@ -701,7 +702,6 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
 
     // DocumentListener things
-
     /**
      * Handles DocumentEvents.
      * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
@@ -710,8 +710,6 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         if(autosaveOn) save();
         else csv.setSaved(false);
     }}
-
-
     /**
      * Handles DocumentEvents.
      * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
@@ -720,8 +718,6 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         if(autosaveOn) save();
         else csv.setSaved(false);
     }}
-
-
     /**
      * Handles DocumentEvents.
      * @param e a {@link DocumentEvent} sent by a {@link PrimaryTextPane}
@@ -759,11 +755,12 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
      */
     public void componentResized(ComponentEvent e) {
         Dimension newSize = e.getComponent().getBounds().getSize();
-        locBar.setSize(new Dimension((int) newSize.getWidth(), Constants.GraphicsConstants.LOCBARHEIGHT));
+        locBar.setSize(new Dimension((int) newSize.getWidth(), Constants.GraphicsConstants.BARHEIGHT));
         locBar.setLabelSize();
-        ssPane.setSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (int) newSize.getHeight() - (Constants.GraphicsConstants.LOCBARHEIGHT + Constants.GraphicsConstants.MENUBARHEIGHT) * 2 + 7));
-        psPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4));
-        ptPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4));
+        botBar.setBounds(0, (int) newSize.getHeight() - 76, (int) newSize.getWidth(), Constants.GraphicsConstants.BARHEIGHT);
+        ssPane.setSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (int) newSize.getHeight() - Constants.GraphicsConstants.MENUBARHEIGHT - 2 * Constants.GraphicsConstants.BARHEIGHT - 39));
+        psPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
+        ptPane.setSize(new Dimension((int) newSize.getWidth() - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.getHeight() - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
     }
     public void componentHidden(ComponentEvent e) {}
     public void componentMoved(ComponentEvent e) {}

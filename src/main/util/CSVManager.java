@@ -7,7 +7,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.6
+ * @version 1.7
  * @since 0.0.1
  */
 public class CSVManager {
@@ -50,18 +50,16 @@ public class CSVManager {
     public static int findNotBackslashed(String line, String search) {
         int relativePos = 0;
         int idx = 0;
-        boolean wasLastNegOne = false;
         while(true) {
             idx = line.indexOf(search);
             relativePos += idx;
-            if(wasLastNegOne) return -1;
-            wasLastNegOne = idx < 0;
-            if((idx > 0) && line.charAt(idx - 1) != '\\') return relativePos;
-            else if(idx == 0) return idx;
+            if(idx < 0) return idx;
+            else if(idx == 0 || line.charAt(idx - 1) != '\\') return relativePos;
             line = line.substring(idx + 1);
             relativePos++;
         }
-    } // TODOMT - cleanup
+    }
+
 
     /**
      * Reads a comma-separated value file with the specified filename into a {@code TreeMap<String, ArrayList<String>}.

@@ -18,7 +18,7 @@ public class SidebarScrollPane extends JScrollPane {
         super(view, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER);
 
         // Set size and visibility
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SCREENHEIGHT - (Constants.GraphicsConstants.LOCBARHEIGHT + Constants.GraphicsConstants.MENUBARHEIGHT) * 2 + 7));
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, Constants.GraphicsConstants.SCREENHEIGHT - (Constants.GraphicsConstants.BARHEIGHT + Constants.GraphicsConstants.MENUBARHEIGHT) * 2 + 7));
         setVisible(true);
     }
     // there doesn't seem to be much of a reason right now to create a custom class but it's more versatile for later

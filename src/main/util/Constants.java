@@ -25,7 +25,7 @@ public class Constants {
         public static final int SCREENHEIGHT = 540;
 
         public static final int MENUBARHEIGHT = 23;
-        public static final int LOCBARHEIGHT = 18;
+        public static final int BARHEIGHT = 18;
 
         public static final int HPADDING = 5;
         public static final int VPADDING = 5;
@@ -37,7 +37,7 @@ public class Constants {
 
         public static final Dimension MENUBSIZE = new Dimension(130, 25);
         
-        public static final int PSPVOFFSET = (MENUBARHEIGHT + LOCBARHEIGHT) / 2;
+        public static final int PSPVOFFSET = (MENUBARHEIGHT + BARHEIGHT) / 2;
     }
 
 

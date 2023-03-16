@@ -1,4 +1,4 @@
-package components.location;
+package components.bars;
 
 import util.Constants;
 
@@ -9,7 +9,7 @@ import java.awt.*;
  * {@code LocationBar} is a class to create a simple bar at the top of the screen to indicate where the user is.
  * 
  * @author Christian Azinn
- * @version 0.4
+ * @version 0.5
  * @since 0.0.2
  */
 public class LocationBar extends JPanel {
@@ -21,22 +21,16 @@ public class LocationBar extends JPanel {
     private JLabel label;
     private Component parent;
 
-    // Instance variables for insets and size
-    private Insets insets;
-    private Dimension size;
-
 
     public LocationBar(String filename, Component parent) {
         // Absolute positioning layout, layout managers are annoying
         super(null);
 
-        // Get panel insets
-        insets = getInsets();
         this.parent = parent;
         // Set preferred size using GraphicsConstants
-        setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.LOCBARHEIGHT));
+        setPreferredSize(new Dimension(Constants.GraphicsConstants.SCREENWIDTH, Constants.GraphicsConstants.BARHEIGHT));
 
-        // Create label, set font, and set position/size (read text lmao)
+        // Create label, set font, and set position/size
         label = new JLabel();
         label.setFont(Constants.FontConstants.SBOLD);
         add(label);
@@ -112,10 +106,11 @@ public class LocationBar extends JPanel {
      * Changes the label size.
      */
     public void setLabelSize() {
-        size = label.getPreferredSize();
+        Dimension size = label.getPreferredSize();
         int w = (int) size.getWidth();
         int h = (int) size.getHeight();
-        if(w > parent.getBounds().getWidth() - 10) w = (int) parent.getBounds().getWidth() - 10;
-        label.setBounds(Constants.GraphicsConstants.HPADDING + insets.left, insets.top, w, h);
+        double pw = parent.getBounds().getWidth();
+        if(pw > 0 && w > pw - 10) w = (int) parent.getBounds().getWidth() - 10;
+        label.setBounds(Constants.GraphicsConstants.HPADDING, 0, w, h);
     }
 }
