@@ -15,7 +15,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.1.7
+ * @version 0.1.8
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener, DocumentListener, MouseListener, ComponentListener {
@@ -43,7 +43,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.1.7 alpha");
+        super("KTO ver 0.1.8 alpha");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -131,7 +131,7 @@ public class KTOJF extends JFrame implements ActionListener, DocumentListener, M
         }
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
         locBar = new LocationBar(defaultFilename, this);
-        botBar = new BottomBar("Running KTO ver 0.1.7 alpha, 03/15/2023 build | Figure out what else to put here!", this);
+        botBar = new BottomBar("Running KTO ver 0.1.8 alpha, 03/15/2023 build | Figure out what else to put here!", this);
         sbPane = new SidebarPane(branch, this, this, true);
         ssPane = new SidebarScrollPane(sbPane);
         ptPane = new PrimaryTextPane("", this);
