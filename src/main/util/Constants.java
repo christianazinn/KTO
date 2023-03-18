@@ -6,7 +6,7 @@ import java.awt.*;
  * {@code Constants} is a container class for all constants, each individually categorized in their own class.
  * 
  * @author Christian Azinn
- * @version 0.6
+ * @version 0.7
  * @since 0.0.2
  */
 public class Constants {
@@ -68,5 +68,16 @@ public class Constants {
         public static final Font LITAL = new Font(FONTNAME, Font.ITALIC, LARGEFONTSIZE);
 
         public static final Font FFONT = new Font(FONTNAME, Font.PLAIN, 12);
+    }
+
+    /**
+     * {@code GeneralConstants} is a container class for generic constants that don't fall under the other constant classes.
+     * 
+     * @author Christian Azinn
+     * @version 0.1
+     * @since 0.2.0
+     */
+    public static class GeneralConstants {
+        public static final int AUTOSAVEREFRESH = 1000; // ms
     }
 }
