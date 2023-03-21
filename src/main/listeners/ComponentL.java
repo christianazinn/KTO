@@ -9,16 +9,18 @@ import java.awt.event.*;
  * {@code ComponentL} is a class to implement a {@link ComponentListener} to handle resize events for {@link KTOJF}.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.2
  * @since 0.2.0
  */
 public class ComponentL implements ComponentListener {
 
     private ComponentContainer cc;
 
+
     public ComponentL(ComponentContainer cc) {
         this.cc = cc;
     }
+
 
     /**
      * Handles ComponentEvents.

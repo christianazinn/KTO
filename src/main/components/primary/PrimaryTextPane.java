@@ -9,17 +9,18 @@ import javax.swing.event.*;
  * {@code PrimaryTextPane} is a class to create an editable, markup-able {@link JTextArea} for use as the main frame of the application.
  * 
  * @author Christian Azinn
- * @version 0.3
+ * @version 0.4
  * @since 0.0.4
  */
 public class PrimaryTextPane extends JTextArea {
-    public PrimaryTextPane(String initialText, DocumentListener d) {
+    public PrimaryTextPane(String initialText, DocumentListener d, CaretListener c) {
         super();
         setFont(Constants.FontConstants.SFONT);
         setText(initialText);
         setLineWrap(true);
         setWrapStyleWord(true);
         getDocument().addDocumentListener(d);
+        addCaretListener(c);
     }
     // there doesn't seem to be much of a reason right now to create a custom class but it's more versatile for later
 

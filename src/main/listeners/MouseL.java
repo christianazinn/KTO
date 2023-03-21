@@ -9,7 +9,7 @@ import java.awt.event.*;
  * {@code MouseL} is a class to implement a {@link MouseListener} to handle right-click events for {@link KTOJF}.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.2
  * @since 0.2.0
  */
 public class MouseL implements MouseListener {
@@ -18,10 +18,12 @@ public class MouseL implements MouseListener {
     private ActionListener a;
     private Component mostRecent;
 
+
     public MouseL(ActionListener a) {
         this.a = a;
         this.mostRecent = null;
     }
+
 
     /**
      * Handles MouseEvents.
@@ -37,6 +39,7 @@ public class MouseL implements MouseListener {
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
+
 
     /**
      * Returns the most recently clicked {@link SidebarButton}.

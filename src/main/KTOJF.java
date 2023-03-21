@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.0
+ * @version 0.2.2
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -24,6 +24,7 @@ public class KTOJF extends JFrame implements ActionListener {
     // Component container + listeners
     private ComponentContainer cc;
     private ComponentL cl;
+    private CaretL al;
     private DocumentL dl;
     private MouseL ml;
     // Instance variables for other things
@@ -39,7 +40,7 @@ public class KTOJF extends JFrame implements ActionListener {
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.2.1 beta");
+        super("KTO ver 0.2.2 beta");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -121,7 +122,6 @@ public class KTOJF extends JFrame implements ActionListener {
         }
     }
 
-    
     /**
      * Initializes all components.
      */
@@ -135,13 +135,15 @@ public class KTOJF extends JFrame implements ActionListener {
         cc = new ComponentContainer(csv);
         cl = new ComponentL(cc);
         dl = new DocumentL(cc, autosaveOn);
+        al = new CaretL(cc);
         ml = new MouseL(this);
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFilename, this);
-        cc.botBar = new BottomBar("Running KTO ver 0.2.1 beta, 03/21/2023 build | Figure out what else to put here!", this);
+        cc.brBut = new BottomRedirectButton(this);
+        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver 0.2.2 beta, 03/21/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
-        cc.ptPane = new PrimaryTextPane("", dl);
+        cc.ptPane = new PrimaryTextPane("", dl, al);
         cc.pnPane = new PrimaryNullPane();
         cc.psPane = new PrimaryScrollPane(cc.pnPane);
     }
@@ -154,7 +156,7 @@ public class KTOJF extends JFrame implements ActionListener {
         // Add everything
         setJMenuBar(cc.mmBar);
         add(cc.locBar);
-        add(cc.botBar);
+        add(cc.botBar); // bottom redirect button is added within the bottom bar
         add(cc.ssPane);
         add(cc.psPane);
     }
@@ -194,6 +196,7 @@ public class KTOJF extends JFrame implements ActionListener {
      */
     public void actionPerformed(ActionEvent a) {
         String command = a.getActionCommand();
+        if(command.equals("")) return; // empty button
         char tag = command.charAt(0);
         dl.setListen(false);
         switch(tag) {

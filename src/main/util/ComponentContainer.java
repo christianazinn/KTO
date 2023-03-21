@@ -9,12 +9,13 @@ import components.sidebar.*;
  * {@code ComponentContainer} is a class to house all custom Components used by {@link KTOJF} for easier interoperability and flexibility.
  * 
  * @author Christian Azinn
- * @version 0.2
+ * @version 0.3
  * @since 0.2.0
  */
 public class ComponentContainer {
 
     public BottomBar botBar;
+    public BottomRedirectButton brBut;
     public LocationBar locBar;
     public MainMenuBar mmBar;
     public PrimaryScrollPane psPane;
