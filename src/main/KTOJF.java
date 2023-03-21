@@ -39,7 +39,7 @@ public class KTOJF extends JFrame implements ActionListener {
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.2.0 beta");
+        super("KTO ver 0.2.1 beta");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -138,11 +138,12 @@ public class KTOJF extends JFrame implements ActionListener {
         ml = new MouseL(this);
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFilename, this);
-        cc.botBar = new BottomBar("Running KTO ver 0.2.0 beta, 03/17/2023 build | Figure out what else to put here!", this);
+        cc.botBar = new BottomBar("Running KTO ver 0.2.1 beta, 03/21/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
         cc.ptPane = new PrimaryTextPane("", dl);
-        cc.psPane = new PrimaryScrollPane(cc.ptPane);
+        cc.pnPane = new PrimaryNullPane();
+        cc.psPane = new PrimaryScrollPane(cc.pnPane);
     }
 
 
@@ -183,7 +184,7 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
 
-    // TODOST - HANDLE DEFAULT ACTIVATED TEXTBOXES / ALWAYS WRITE SOMETHING SOMEWHERE
+    // TODOST - MAKE @LINKS IN TEXT CREATE BUTTONS ON BOTTOM BAR TO REDIRECT
     // TODOMT - FAVORITING
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
@@ -348,6 +349,9 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
         cc.ssPane.setViewportView(cc.sbPane);
 
+        // there's nothing to write to so blank out textbox
+        cc.psPane.setViewportView(cc.pnPane);
+
         // mark as saved
         cc.csv.setSaved(true);
     }
@@ -370,6 +374,9 @@ public class KTOJF extends JFrame implements ActionListener {
         // create new SidebarPane and update SidebarScrollPane
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
         cc.ssPane.setViewportView(cc.sbPane);
+        
+        // there's nothing to write to so blank out textbox
+        cc.psPane.setViewportView(cc.pnPane);
 
         // mark as saved
         cc.csv.setSaved(true);
@@ -391,6 +398,9 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
         cc.ssPane.setViewportView(cc.sbPane);
 
+        // there's nothing to write to so blank out textbox
+        cc.psPane.setViewportView(cc.pnPane);
+    
         // mark as saved
         cc.csv.setSaved(true);
     }
@@ -419,6 +429,9 @@ public class KTOJF extends JFrame implements ActionListener {
         // create new SidebarPane and update SidebarScrollPane
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
         cc.ssPane.setViewportView(cc.sbPane);
+        
+        // there's nothing to write to so blank out textbox
+        cc.psPane.setViewportView(cc.pnPane);
     }
 
 
@@ -448,6 +461,9 @@ public class KTOJF extends JFrame implements ActionListener {
         // create new SidebarPane and update SidebarScrollPane
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
         cc.ssPane.setViewportView(cc.sbPane);
+        
+        // there's nothing to write to so blank out textbox
+        cc.psPane.setViewportView(cc.pnPane);
     }
 
 
@@ -572,6 +588,7 @@ public class KTOJF extends JFrame implements ActionListener {
         fullText = fullText.replaceAll("(?<!\\\\)(\\\\)(?!n)", "").replaceAll("(?<!\\\\)(\\\\n)","\n");
 
         // set the textbox to the formatted text
+        cc.psPane.setViewportView(cc.ptPane);
         cc.ptPane.setText(fullText);
     }
 
@@ -685,6 +702,9 @@ public class KTOJF extends JFrame implements ActionListener {
         // really convoluted way of getting the source button using polymorphic typecasting
         SidebarButton target = ml.getMostRecent();
         String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // check if the deleted one was active, if so blank out
+        if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
 
         // do the actual removal
         branch.remove(cc.sbPane.getButtonText().indexOf(branchTarget));

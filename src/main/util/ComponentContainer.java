@@ -9,7 +9,7 @@ import components.sidebar.*;
  * {@code ComponentContainer} is a class to house all custom Components used by {@link KTOJF} for easier interoperability and flexibility.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.2
  * @since 0.2.0
  */
 public class ComponentContainer {
@@ -19,6 +19,7 @@ public class ComponentContainer {
     public MainMenuBar mmBar;
     public PrimaryScrollPane psPane;
     public PrimaryTextPane ptPane;
+    public PrimaryNullPane pnPane;
     public SidebarPane sbPane;
     public SidebarScrollPane ssPane;
     public CSVManager csv;
