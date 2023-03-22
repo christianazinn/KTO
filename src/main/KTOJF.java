@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.4
+ * @version 0.2.4a
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -34,7 +34,7 @@ public class KTOJF extends JFrame implements ActionListener {
     
     // TEMP
     private String defaultFilename, defaultDirectory, lookAndFeel;
-    private static final String version = "0.2.4";
+    private static final String version = "0.2.4a";
     private static final String releaseVer = "beta";
 
 
@@ -513,7 +513,7 @@ public class KTOJF extends JFrame implements ActionListener {
                 if(sv == null) return;
             } else sv = "";
 
-            PrintWriter pw = new PrintWriter(new FileWriter("util/KTOJF.ini"));
+            PrintWriter pw = new PrintWriter(new FileWriter("KTOJF.ini"));
             pw.println("[Options]");
 
             if(sv.equals("Directory") || sv.equals("All")) pw.println("defaultDirectory=" + cc.csv.getDirectory());
