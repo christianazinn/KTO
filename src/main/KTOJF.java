@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.4a
+ * @version 0.2.5
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -34,7 +34,7 @@ public class KTOJF extends JFrame implements ActionListener {
     
     // TEMP
     private String defaultFilename, defaultDirectory, lookAndFeel;
-    private static final String version = "0.2.4a";
+    private static final String version = "0.2.5";
     private static final String releaseVer = "beta";
 
 
@@ -188,8 +188,6 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
 
-    // TODOST - MAKE @LINKS IN TEXT CREATE BUTTONS ON BOTTOM BAR TO REDIRECT
-    // TODOMT - FAVORITING
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
@@ -272,6 +270,9 @@ public class KTOJF extends JFrame implements ActionListener {
                         break;
                     case "Actv":
                         activate(true);
+                        break;
+                    case "Fvrt":
+                        favorite();
                         break;
                     default:
                         error("right click option");
@@ -540,12 +541,13 @@ public class KTOJF extends JFrame implements ActionListener {
         String newLine = input("key", "New Branch");
         // immediately exits if the user pressed exit on the dialog
         if(newLine == null) return;
-        // display error if the branch name is invalid
-        if(newLine.equals("") || newLine.equals("\n") || newLine.charAt(newLine.length() - 1) == '\\') {
-            error("key");
-            return;
-        } else if(cc.sbPane.getButtonText().contains(newLine)) {
+        // check for duplicate
+        else if(cc.sbPane.getButtonText().contains(newLine) || cc.sbPane.getButtonText().contains("#" + newLine)) {
             JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        // ensure key validity
+        } else if(newLine.equals("") || newLine.equals("\n") || newLine.charAt(newLine.length() - 1) == '\\' || newLine.charAt(newLine.length() - 1) == '|' || newLine.charAt(0) == '#') {
+            error("key");
             return;
         }
 
@@ -576,8 +578,10 @@ public class KTOJF extends JFrame implements ActionListener {
     private void display(String command) {
         // set active subbranch
         activeSubbranch = command;
+        // handle favorites
+        if(cc.sbPane.getButtonText().indexOf(activeSubbranch) == -1) activeSubbranch = "#" + activeSubbranch;
         // get the text to be displayed
-        String fullText = branch.get(cc.sbPane.getButtonText().indexOf(command));
+        String fullText = branch.get(cc.sbPane.getButtonText().indexOf(activeSubbranch));
         // reset textbox
         cc.ptPane.setText("");
 
@@ -612,11 +616,11 @@ public class KTOJF extends JFrame implements ActionListener {
         String newName = input("new name", "Rename");
         if(newName == null) return;
         // check for duplicate
-        else if(cc.sbPane.getButtonText().contains(newName)) {
+        else if(cc.sbPane.getButtonText().contains(newName) || cc.sbPane.getButtonText().contains("#" + newName)) {
             JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         // ensure key validity
-        } else if(newName.charAt(newName.length() - 1) == '\\') {
+        } else if(newName.equals("") || newName.equals("\n") || newName.charAt(newName.length() - 1) == '\\' || newName.charAt(newName.length() - 1) == '|' || newName.charAt(0) == '#') {
             error("key");
             return;
         }
@@ -631,15 +635,21 @@ public class KTOJF extends JFrame implements ActionListener {
             return;
         } 
 
-        // update button name
-        target.update(newName);
+        // handle favorites
+        boolean wasFavorited = cc.sbPane.getButtonText().indexOf(branchTarget) == -1;
+        if(wasFavorited) {
+            branchTarget = "#" + branchTarget;
+            newName = "#" + newName;
+        }
 
-        // update button text in SidebarPane ArrayList
-        int idx = cc.sbPane.getButtonText().indexOf(branchTarget);
-        cc.sbPane.getButtonText().set(idx, newName);
+        // update button name
+        target.update(newName, false);
 
         // change target key
-        cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
+        if(wasFavorited) cc.csv.changeKey(branchTarget.substring(2), newName.substring(2));
+        else cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
+        // FIXME - renaming a redirect to an existing branch name overwrites the ENTIRE existing one
+        // have it show the user a dialogue whether they want to rename and overwrite or just change the redirect
         
         // change all references to target key
         branchTarget = branchTarget.replaceAll("\\\\", "\\\\\\\\");
@@ -647,6 +657,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.csv.changeAllRefs(branchTarget, newName);
 
         // update key in active branch
+        int idx = cc.sbPane.getButtonText().indexOf(branchTarget);
         String tbr = branch.get(idx);
         int fnb = CSVManager.findNotBackslashed(tbr, "[");
         if(fnb != -1) branch.set(idx, newName + tbr.substring(fnb));
@@ -673,11 +684,11 @@ public class KTOJF extends JFrame implements ActionListener {
         String newName = input("new name", "Copy");
         if(newName == null) return;
         // check for duplicate
-        else if(cc.sbPane.getButtonText().contains(newName)) {
+        else if(cc.sbPane.getButtonText().contains(newName) || cc.sbPane.getButtonText().contains("#" + newName)) {
             JOptionPane.showMessageDialog(this, "Duplicate key!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         // ensure key validity
-        } else if(newName.charAt(newName.length() - 1) == '\\') {
+        } else if(newName.equals("") || newName.equals("\n") || newName.charAt(newName.length() - 1) == '\\' || newName.charAt(newName.length() - 1) == '|' || newName.charAt(0) == '#') {
             error("key");
             return;
         }
@@ -685,6 +696,9 @@ public class KTOJF extends JFrame implements ActionListener {
         // really convoluted way of getting the source button using polymorphic typecasting
         SidebarButton target = ml.getMostRecent();
         String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // handle favorites
+        if(cc.sbPane.getButtonText().indexOf(branchTarget) == -1) branchTarget = "#" + branchTarget;
 
         // do the actual copying
         String copy = branch.get(cc.sbPane.getButtonText().indexOf(branchTarget));
@@ -714,6 +728,9 @@ public class KTOJF extends JFrame implements ActionListener {
         SidebarButton target = ml.getMostRecent();
         String branchTarget = target.getText().replaceAll("> ", "@");
 
+        // handle favorites
+        if(cc.sbPane.getButtonText().indexOf(branchTarget) == -1) branchTarget = "#" + branchTarget;
+
         // check if the deleted one was active, if so blank out
         if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
         if(!target.isEnabled()) branchTarget = "|" + branchTarget;
@@ -732,19 +749,21 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
     /**
-     * Activates or deactivates a button.
+     * Activates or deactivates a subbranch or redirect.
      * @param targetStatus the enabled status after the method is called
      */
     private void activate(boolean targetStatus) {
         // really convoluted way of getting the source button using polymorphic typecasting
         SidebarButton target = ml.getMostRecent();
-        String branchTarget = target.getText().replaceAll("> ", "@");
+        String newString, info, branchTarget = target.getText().replaceAll("> ", "@");
+
+        // handle favorites
+        if(cc.sbPane.getButtonText().indexOf(branchTarget) == -1) branchTarget = "#" + branchTarget;
 
         // check if the deactivated one was active, if so blank out
         if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
 
         // change things accordingly to handle | operator
-        String newString, info;
         if(targetStatus) {
             newString = branchTarget;
             branchTarget = branchTarget + "|";
@@ -767,6 +786,37 @@ public class KTOJF extends JFrame implements ActionListener {
         if(autosaveOn) save();
         else cc.csv.setSaved(false);
     } 
+
+
+    /**
+     * Favorites a subbranch or redirect.
+     */
+    private void favorite() {
+        // really convoluted way of getting the source button using polymorphic typecasting
+        SidebarButton target = ml.getMostRecent();
+        String newString, info, branchTarget = target.getText().replaceAll("> ", "@");
+
+        if(cc.sbPane.getButtonText().indexOf(branchTarget) != -1) newString = "#" + branchTarget;
+        else {
+            newString = branchTarget;
+            branchTarget = "#" + branchTarget;
+        }
+
+        // save info
+        info = branch.get(cc.sbPane.getButtonText().indexOf(branchTarget)).substring(branchTarget.length());
+        
+        // update branch
+        branch.set(cc.sbPane.getButtonText().indexOf(branchTarget), newString + info);
+        Collections.sort(branch);
+
+        // create new SidebarPane and update SidebarScrollPane
+        cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
+        cc.ssPane.setViewportView(cc.sbPane);
+
+        // save
+        if(autosaveOn) save();
+        else cc.csv.setSaved(false);
+    }
 
 
     /**
