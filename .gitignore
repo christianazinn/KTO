@@ -32,3 +32,6 @@ javadoc/
 # Other things
 .VSCodeCounter/
 .vscode/
+
+# .jar test directory
+src/test/

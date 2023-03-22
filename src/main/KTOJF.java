@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.2
+ * @version 0.2.3
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -40,12 +40,12 @@ public class KTOJF extends JFrame implements ActionListener {
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.2.2 beta");
+        super("KTO ver 0.2.3 beta");
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
-        setIconImage(new ImageIcon("img/kto.png").getImage());
+        setIconImage(new ImageIcon(ClassLoader.getSystemResource("img/kto.png")).getImage());
 
         // Read settings
         readSettings();
@@ -90,7 +90,7 @@ public class KTOJF extends JFrame implements ActionListener {
     private void readSettings() {
         try {
             // Initialize input
-            BufferedReader r = new BufferedReader(new FileReader("util/KTOJF.ini"));
+            BufferedReader r = new BufferedReader(new FileReader("KTOJF.ini"));
             r.readLine();
 
             // Get default directory
@@ -140,7 +140,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFilename, this);
         cc.brBut = new BottomRedirectButton(this);
-        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver 0.2.2 beta, 03/21/2023 build | Figure out what else to put here!", this);
+        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver 0.2.3 beta, 03/21/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
         cc.ptPane = new PrimaryTextPane("", dl, al);

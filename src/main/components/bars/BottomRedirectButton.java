@@ -10,7 +10,7 @@ import java.awt.event.*;
  * {@code BottomRedirectButton} is a class to create a {@link JButton} at the bottom of the screen to redirect off in-text redirects in a {@link PrimaryTextPane}.
  * 
  * @author Christian Azinn
- * @version 0.1
+ * @version 0.2
  * @since 0.2.2
  */
 public class BottomRedirectButton extends JButton {
@@ -35,7 +35,7 @@ public class BottomRedirectButton extends JButton {
 
     public void update(String text) {
         // Check whether it's a redirect
-        if(text.length() == 0 || text.charAt(0) != '@') {
+        if(text.length() <= 1 || text.charAt(0) != '@') {
             setActionCommand("");
 
             // Set custom text to nothing
