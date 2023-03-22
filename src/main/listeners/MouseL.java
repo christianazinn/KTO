@@ -9,7 +9,7 @@ import java.awt.event.*;
  * {@code MouseL} is a class to implement a {@link MouseListener} to handle right-click events for {@link KTOJF}.
  * 
  * @author Christian Azinn
- * @version 0.2
+ * @version 0.3
  * @since 0.2.0
  */
 public class MouseL implements MouseListener {
@@ -31,7 +31,7 @@ public class MouseL implements MouseListener {
      */
     public void mouseReleased(MouseEvent e) { if(e.isPopupTrigger()) {
         SidebarButton source = (SidebarButton) e.getSource();
-        SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(a, source.getText().charAt(0) == '>');
+        SidebarRightClickMenu sbrcm = new SidebarRightClickMenu(a, source.getText().charAt(0) == '>', source.isEnabled());
         sbrcm.show(e.getComponent(), e.getX(), e.getY());
         mostRecent = e.getComponent();
     }}

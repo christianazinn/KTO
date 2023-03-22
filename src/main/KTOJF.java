@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.3
+ * @version 0.2.4
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -34,13 +34,15 @@ public class KTOJF extends JFrame implements ActionListener {
     
     // TEMP
     private String defaultFilename, defaultDirectory, lookAndFeel;
+    private static final String version = "0.2.4";
+    private static final String releaseVer = "beta";
 
 
 
 
     public KTOJF() {
         // Create JFrame and title it
-        super("KTO ver 0.2.3 beta");
+        super("KTO " + version);
 
         // Set to exit program on window close, absolute positioning layout, and icon
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -140,7 +142,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFilename, this);
         cc.brBut = new BottomRedirectButton(this);
-        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver 0.2.3 beta, 03/21/2023 build | Figure out what else to put here!", this);
+        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/22/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
         cc.ptPane = new PrimaryTextPane("", dl, al);
@@ -264,6 +266,12 @@ public class KTOJF extends JFrame implements ActionListener {
                         break;
                     case "Delt":
                         delete();
+                        break;
+                    case "Dacv":
+                        activate(false);
+                        break;
+                    case "Actv":
+                        activate(true);
                         break;
                     default:
                         error("right click option");
@@ -708,6 +716,7 @@ public class KTOJF extends JFrame implements ActionListener {
 
         // check if the deleted one was active, if so blank out
         if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
+        if(!target.isEnabled()) branchTarget = "|" + branchTarget;
 
         // do the actual removal
         branch.remove(cc.sbPane.getButtonText().indexOf(branchTarget));
@@ -720,6 +729,44 @@ public class KTOJF extends JFrame implements ActionListener {
         if(autosaveOn) save();
         else cc.csv.setSaved(false);
     }
+
+
+    /**
+     * Activates or deactivates a button.
+     * @param targetStatus the enabled status after the method is called
+     */
+    private void activate(boolean targetStatus) {
+        // really convoluted way of getting the source button using polymorphic typecasting
+        SidebarButton target = ml.getMostRecent();
+        String branchTarget = target.getText().replaceAll("> ", "@");
+
+        // check if the deactivated one was active, if so blank out
+        if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
+
+        // change things accordingly to handle | operator
+        String newString, info;
+        if(targetStatus) {
+            newString = branchTarget;
+            branchTarget = branchTarget + "|";
+        }
+        else newString = branchTarget + "|";
+
+        // save info
+        info = branch.get(cc.sbPane.getButtonText().indexOf(branchTarget)).substring(branchTarget.length());
+
+        // update branch
+        branch.set(cc.sbPane.getButtonText().indexOf(branchTarget), newString + info);
+
+        // create new SidebarPane and update SidebarScrollPane
+        cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
+        cc.ssPane.setViewportView(cc.sbPane);
+
+        target.setEnabled(targetStatus);
+
+        // save
+        if(autosaveOn) save();
+        else cc.csv.setSaved(false);
+    } 
 
 
     /**
