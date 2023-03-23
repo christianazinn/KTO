@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.5
+ * @version 0.2.6
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -34,7 +34,7 @@ public class KTOJF extends JFrame implements ActionListener {
     
     // TEMP
     private String defaultFilename, defaultDirectory, lookAndFeel;
-    private static final String version = "0.2.5";
+    private static final String version = "0.2.6";
     private static final String releaseVer = "beta";
 
 
@@ -188,6 +188,7 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
 
+    // TODOST - SHOW THE SUBBRANCH IN LOCBAR (display())
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
@@ -578,6 +579,7 @@ public class KTOJF extends JFrame implements ActionListener {
     private void display(String command) {
         // set active subbranch
         activeSubbranch = command;
+        cc.locBar.updateSubbranch(activeSubbranch);
         // handle favorites
         if(cc.sbPane.getButtonText().indexOf(activeSubbranch) == -1) activeSubbranch = "#" + activeSubbranch;
         // get the text to be displayed
@@ -648,7 +650,7 @@ public class KTOJF extends JFrame implements ActionListener {
         // change target key
         if(wasFavorited) cc.csv.changeKey(branchTarget.substring(2), newName.substring(2));
         else cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
-        // FIXME - renaming a redirect to an existing branch name overwrites the ENTIRE existing one
+        // FIXMEST - renaming a redirect to an existing branch name overwrites the ENTIRE existing one
         // have it show the user a dialogue whether they want to rename and overwrite or just change the redirect
         
         // change all references to target key
@@ -757,18 +759,21 @@ public class KTOJF extends JFrame implements ActionListener {
         SidebarButton target = ml.getMostRecent();
         String newString, info, branchTarget = target.getText().replaceAll("> ", "@");
 
-        // handle favorites
-        if(cc.sbPane.getButtonText().indexOf(branchTarget) == -1) branchTarget = "#" + branchTarget;
-
-        // check if the deactivated one was active, if so blank out
-        if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
-
         // change things accordingly to handle | operator
         if(targetStatus) {
             newString = branchTarget;
             branchTarget = branchTarget + "|";
         }
         else newString = branchTarget + "|";
+        
+        // handle favorites
+        if(cc.sbPane.getButtonText().indexOf(branchTarget) == -1) {
+            branchTarget = "#" + branchTarget;
+            newString = "#" + newString;
+        }
+
+        // check if the deactivated one was active, if so blank out
+        if(activeSubbranch.equals(target.getText())) cc.psPane.setViewportView(cc.pnPane);
 
         // save info
         info = branch.get(cc.sbPane.getButtonText().indexOf(branchTarget)).substring(branchTarget.length());

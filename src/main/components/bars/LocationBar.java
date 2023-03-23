@@ -9,7 +9,7 @@ import java.awt.*;
  * {@code LocationBar} is a class to create a simple bar at the top of the screen to indicate where the user is.
  * 
  * @author Christian Azinn
- * @version 0.5
+ * @version 0.6
  * @since 0.0.2
  */
 public class LocationBar extends JPanel {
@@ -20,6 +20,7 @@ public class LocationBar extends JPanel {
     private int directoriesDown;
     private JLabel label;
     private Component parent;
+    private boolean showsSubbranch;
 
 
     public LocationBar(String filename, Component parent) {
@@ -35,6 +36,8 @@ public class LocationBar extends JPanel {
         label.setFont(Constants.FontConstants.SBOLD);
         add(label);
         
+        showsSubbranch = false;
+        
         // Set other instance variables
         reset(filename);
 
@@ -49,10 +52,14 @@ public class LocationBar extends JPanel {
      * @param directory the next directory name
      */
     public void directoryDown(String directory) {
+        // Truncate everything after the last ":", as well as the preceding space
+        if(showsSubbranch) text = text.substring(0, text.lastIndexOf(":") - 1);
+
         // Add directory name to text and set text
         text += " > " + directory;
         label.setText(text);
         setLabelSize();
+        showsSubbranch = false;
 
         // Keep track of how many directories in it is
         directoriesDown++;
@@ -68,18 +75,14 @@ public class LocationBar extends JPanel {
         // Check if it's trying to go higher than directory 0
         if(directoriesDown == 0) return "@";
 
-        // Search for the last '>'
-        int i = text.length() - 1;
-        for(; i >= 0; i--) if(text.charAt(i) == '>') break;
-        // Truncate everything after that, as well as the preceding space
-        text = text.substring(0, i - 1);
-        i -= 2;
+        // Truncate everything after the last ">", as well as the preceding space
+        text = text.substring(0, text.lastIndexOf(">") - 1);
         // Search for the redirect address
-        for(; i >= 0; i--) if(text.charAt(i) == '>') break;
-        String redirect = text.substring(i + 2, text.length());
+        String redirect = text.substring(text.lastIndexOf(">") + 2, text.length());
         
         // Keep track of how many directories in it is
         directoriesDown--;
+        showsSubbranch = false;
 
         // Update label text
         label.setText(text);
@@ -88,6 +91,22 @@ public class LocationBar extends JPanel {
         // Check if it's at directory 0
         if(directoriesDown == 0) return "@";
         return redirect;
+    }
+
+
+    /**
+     * Move down into a subbranch.
+     * @param subbranch the subbranch name
+     */
+    public void updateSubbranch(String subbranch) {
+        // Truncate everything after the last ":", as well as the preceding space
+        if(showsSubbranch) text = text.substring(0, text.lastIndexOf(":") - 1);
+        
+        // Add subbranch name to text and set text
+        text += " : " + subbranch;
+        label.setText(text);
+        setLabelSize();
+        showsSubbranch = true;
     }
 
 

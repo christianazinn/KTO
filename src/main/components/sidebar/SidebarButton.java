@@ -10,16 +10,21 @@ import java.awt.event.*;
  * {@code SidebarButton} is a class to create a {@link JButton} to be used in the navigation sidebar of the application.
  * 
  * @author Christian Azinn
- * @version 0.7
+ * @version 0.8
  * @since 0.0.3
  */
 public class SidebarButton extends JButton {
+
+    private boolean isFavorited;
+
+
     public SidebarButton(String text, ActionListener a, MouseListener m) {
         // Default constructor - text will be set later
         super();
         // Set font
         setFont(Constants.FontConstants.SFONT);
         
+        isFavorited = false;
         if(update(text, false)) addMouseListener(m);
 
         // Add the indicated ActionListener
@@ -45,7 +50,9 @@ public class SidebarButton extends JButton {
         switch(e) {
             case '#': // Handle # (Favorite) operator
                 // Set border
-                setBackground(Color.BLUE);
+                if(!alreadySet) setBackground(Color.BLUE);
+                else setBackground(Color.MAGENTA); // favorited and disabled
+                isFavorited = true;
                 return update(text.substring(1), true);
             case '@': // Handle @ (Redirect) operator
                 // Set custom text to a directory indication
@@ -53,7 +60,10 @@ public class SidebarButton extends JButton {
                 // Hover tooltip indicates the redirect
                 setToolTipText("Go to " + text.substring(1) + ".");
                 // Set border
-                if(!alreadySet) setBackground(Color.BLACK);
+                if(!alreadySet) {
+                    isFavorited = false;
+                    setBackground(Color.BLACK);
+                }
                 return true;
             case '“': // Handle “ (Back) operator
                 // Set custom text
@@ -61,7 +71,10 @@ public class SidebarButton extends JButton {
                 // Hover tooltip indicates going back
                 setToolTipText("Return to the previous directory.");
                 // Set border
-                if(!alreadySet) setBackground(Color.YELLOW);
+                if(!alreadySet) {
+                    isFavorited = false;
+                    setBackground(Color.YELLOW);
+                }
                 return false;
             case '”': // Handle ” (New) operator
                 // Set custom text
@@ -69,7 +82,10 @@ public class SidebarButton extends JButton {
                 // Hover tooltip indicates creating new
                 setToolTipText("Create a new tab or redirect.");
                 // Set border
-                if(!alreadySet) setBackground(Color.GREEN);
+                if(!alreadySet) {
+                    isFavorited = false;
+                    setBackground(Color.GREEN);
+                }
                 return false;
             case '$': // Handle $ (Back to Top) operator
                 // Set custom text
@@ -77,7 +93,10 @@ public class SidebarButton extends JButton {
                 // Hover tooltip indicates going back
                 setToolTipText("Return to the root directory.");
                 // Set border
-                if(!alreadySet) setBackground(Color.ORANGE);
+                if(!alreadySet) {
+                    isFavorited = false;
+                    setBackground(Color.ORANGE);
+                }
                 return false;
             default: // Handle not-@-operator
                 // Set custom text
@@ -85,8 +104,20 @@ public class SidebarButton extends JButton {
                 // Hover tooltip indicates info display
                 setToolTipText("Display information of " + text + ".");
                 // Set border
-                if(!alreadySet) setBackground(Color.LIGHT_GRAY);
+                if(!alreadySet) {
+                    isFavorited = false;
+                    setBackground(Color.LIGHT_GRAY);
+                }
                 return true;
         }
+    }
+
+
+    /**
+     * Simple getter method.
+     * @return whether or not this is favorited
+     */
+    public boolean getFavorited() {
+        return isFavorited;
     }
 }

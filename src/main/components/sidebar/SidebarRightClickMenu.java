@@ -9,11 +9,11 @@ import java.awt.event.*;
  * {@code SidebarRightClickMenu} is a class to create a right-click menu for an {@link SidebarButton}.
  * 
  * @author Christian Azinn
- * @version 0.5
+ * @version 0.6
  * @since 0.1.4
  */
 public class SidebarRightClickMenu extends JPopupMenu {
-    public SidebarRightClickMenu(ActionListener a, boolean isRedirect, boolean isEnabled) {
+    public SidebarRightClickMenu(ActionListener a, boolean isRedirect, boolean isEnabled, boolean isFavorited) {
         super("Options");
         String prefix = "*";
         
@@ -44,8 +44,11 @@ public class SidebarRightClickMenu extends JPopupMenu {
             deleteItem.setActionCommand(prefix + "Delt");
             deleteItem.addActionListener(a);
             
-            JMenuItem favoriteItem = new JMenuItem("Favorite...");
-            favoriteItem.getAccessibleContext().setAccessibleDescription("Favorites this subbranch.");
+            String favorite;
+            if(isFavorited) favorite = "Unfavorite...";
+            else favorite = "Favorite...";
+            JMenuItem favoriteItem = new JMenuItem(favorite);
+            favoriteItem.getAccessibleContext().setAccessibleDescription("Toggles this subbranch's favorite status.");
             favoriteItem.setFont(Constants.FontConstants.FFONT);
             favoriteItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
             add(favoriteItem);
