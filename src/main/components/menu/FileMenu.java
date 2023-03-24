@@ -9,7 +9,7 @@ import java.awt.event.*;
  * {@code FileMenu} is a class to create a {@code JMenu} containing File-related options for the {@link MainMenuBar} to use.
  * 
  * @author Christian Azinn
- * @version 0.6
+ * @version 0.7
  * @since 0.0.2
  */
 public class FileMenu extends JMenu {
@@ -38,6 +38,15 @@ public class FileMenu extends JMenu {
         add(saveItem);
         saveItem.setActionCommand(prefix + "Save");
         saveItem.addActionListener(a);
+        
+        JMenuItem saveAsItem = new JMenuItem("Save As...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/save.png"))
+                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
+        saveAsItem.getAccessibleContext().setAccessibleDescription("Saves the current file under another name.");
+        saveAsItem.setFont(Constants.FontConstants.FFONT);
+        saveAsItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        add(saveAsItem);
+        saveAsItem.setActionCommand(prefix + "Svas");
+        saveAsItem.addActionListener(a);
 
         // Open file
         JMenuItem openItem = new JMenuItem("Open...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/folder.png"))
@@ -58,16 +67,6 @@ public class FileMenu extends JMenu {
         add(newItem);
         newItem.setActionCommand(prefix + "New");
         newItem.addActionListener(a);
-
-        // Change directory
-        JMenuItem dirItem = new JMenuItem("Directory...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/directory.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        dirItem.getAccessibleContext().setAccessibleDescription("Changes the search directory.");
-        dirItem.setFont(Constants.FontConstants.FFONT);
-        dirItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
-        add(dirItem);
-        dirItem.setActionCommand(prefix + "Dir");
-        dirItem.addActionListener(a);
 
         // Save defaults
         JMenuItem defaultItem = new JMenuItem("Save Defaults...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/empty.png"))

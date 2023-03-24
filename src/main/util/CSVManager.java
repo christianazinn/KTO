@@ -7,15 +7,14 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 1.7
+ * @version 2.0
  * @since 0.0.1
  */
 public class CSVManager {
 
     // instance variables
     private TreeMap<String, ArrayList<String>> activeCsv;
-    private String activeFilename;
-    private String activeDirectory;
+    private File activeFile;
     private boolean isSaved;
 
 
@@ -23,7 +22,7 @@ public class CSVManager {
      * Constructor for a CSVManager object. 
      * Each CSVManager can hold and interact with a single CSV file (in {@code TreeMap<String, ArrayList<String>>} form) at a time.
      */
-    public CSVManager(String activeDirectory) {
+    public CSVManager(File file) {
 
         // comparator for sorting
         Comparator<String> c = new Comparator<String>() {
@@ -34,8 +33,7 @@ public class CSVManager {
 
         // set instance variables
         this.activeCsv = new TreeMap<String, ArrayList<String>>(c);
-        this.activeFilename = "";
-        this.activeDirectory = activeDirectory;
+        this.activeFile = file;
         this.isSaved = false;
     }
 
@@ -64,15 +62,15 @@ public class CSVManager {
     /**
      * Reads a comma-separated value file with the specified filename into a {@code TreeMap<String, ArrayList<String>}.
      * I can't be bothered to set up Maven to use OpenCSV, so I wrote my own methods.
-     * @param filename the name of the file to be read (sans file extension)
+     * @param file the path of the file to be read (sans file extension)
      * @return whether or not the file read was successful
      */
-    public boolean open(String filename) {
+    public boolean open(File file) {
         try {
             // initialize filereader and reset csv treemap
-            BufferedReader r = new BufferedReader(new FileReader(activeDirectory + filename));
+            BufferedReader r = new BufferedReader(new FileReader(file));
             activeCsv.clear();
-            activeFilename = filename;
+            activeFile = file;
 
             // add each line
             while(r.ready()) {
@@ -115,7 +113,41 @@ public class CSVManager {
     public boolean save() {
         try {
             // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter(activeDirectory + activeFilename));
+            PrintWriter pw = new PrintWriter(new FileWriter(activeFile));
+
+            // iterate through each key in the active csv
+            for(String key : activeCsv.keySet()) {
+                // write the key and set up arraylist for value
+                pw.print(key + ",");
+                ArrayList<String> values = activeCsv.get(key);
+
+                // iterate through using a regular for loop so commas can be controlled
+                for(int i = 0; i < values.size(); i++) {
+                    pw.print(values.get(i));
+                    if(i != values.size() - 1) pw.print(",");
+                }
+
+                // can't forget the newline
+                pw.println();
+            }
+            // flush and return
+            pw.close();
+            this.isSaved = true;
+            return true;
+        }  catch(Exception e) { return false; }
+    }
+
+    // TODOST - CONSOLIDATE
+    
+    /**
+     * Saves the active {@code TreeMap<String, ArrayList<String>>} to another file.
+     * @return whether or not the file write was successful
+     */
+    public boolean saveAs(File file) {
+        try {
+            // initialize filewriter
+            PrintWriter pw = new PrintWriter(new FileWriter(file));
+            this.activeFile = file;
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -142,18 +174,16 @@ public class CSVManager {
 
     /**
      * Creates a new file with the specified filename, and sets it as active.
-     * @param filename the name of the file to be created
+     * @param file the path of the file to be created
      * @return whether or not the file creation was successful
      */
-    public boolean create(String filename) {
+    public boolean create(File file) {
         try {
-            String pathName = activeDirectory + filename;
-            File file = new File(pathName);
             file.createNewFile();
-            PrintWriter pw = new PrintWriter(new FileWriter(pathName));
+            PrintWriter pw = new PrintWriter(new FileWriter(file));
             pw.println("!,");
             pw.close();
-            activeFilename = filename;
+            activeFile = file;
             this.isSaved = true;
             return true;
         } catch(Exception e) { return false; }
@@ -308,11 +338,11 @@ public class CSVManager {
 
 
     /**
-     * Getter method for the name of the currently active file.
-     * @return the name of the currently active file
+     * Getter method for the currently active file.
+     * @return the currently active file
      */
-    public String getF() {
-        return activeFilename;
+    public File getF() {
+        return activeFile;
     } 
 
 
@@ -340,23 +370,5 @@ public class CSVManager {
      */
     public boolean getSaved() {
         return this.isSaved;
-    }
-
-    
-    /**
-     * Setter method for the active directory path.
-     * @param activeDirectory the active directory path
-     */
-    public void setDirectory(String activeDirectory) {
-        this.activeDirectory = activeDirectory;
-    }
-
-
-    /**
-     * Getter method for the active directory path.
-     * @return the active directory path
-     */
-    public String getDirectory() {
-        return activeDirectory;
     }
 }

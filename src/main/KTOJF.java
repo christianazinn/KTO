@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.2.6
+ * @version 0.3.0
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -33,8 +33,9 @@ public class KTOJF extends JFrame implements ActionListener {
     private boolean isTopLevel, autosaveOn, originalAutosave;
     
     // TEMP
-    private String defaultFilename, defaultDirectory, lookAndFeel;
-    private static final String version = "0.2.6";
+    private String lookAndFeel;
+    private File defaultFile;
+    private static final String version = "0.3.0";
     private static final String releaseVer = "beta";
 
 
@@ -96,12 +97,8 @@ public class KTOJF extends JFrame implements ActionListener {
             r.readLine();
 
             // Get default directory
-            String defDir = r.readLine();
-            defaultDirectory = defDir.substring(defDir.indexOf("=") + 1);
-
-            // Get default filename
-            String defFin = r.readLine();
-            defaultFilename = defFin.substring(defFin.indexOf("=") + 1);
+            String defFil = r.readLine();
+            defaultFile = new File(defFil.substring(defFil.indexOf("=") + 1));
 
             // Set Look and Feel
             String lnf = r.readLine();
@@ -128,19 +125,27 @@ public class KTOJF extends JFrame implements ActionListener {
      * Initializes all components.
      */
     private void initComponents() {
-        CSVManager csv = new CSVManager(defaultDirectory);
-        if(!csv.open(defaultFilename)) {
-            while(!csv.open(defaultFilename)) defaultFilename = JOptionPane.showInputDialog(this, "Default file does not exist! Please enter a valid filename.", "Error", JOptionPane.ERROR_MESSAGE); 
+        CSVManager csv = new CSVManager(defaultFile);
+        cc = new ComponentContainer(csv);
+        cc.fc = new JFileChooser(defaultFile.toString().substring(0, defaultFile.toString().lastIndexOf("\\")));
+        if(!defaultFile.exists()) {
+            while(!csv.open(defaultFile)) {  
+                // gets the filename
+                int ret = cc.fc.showOpenDialog(this);
+                if(ret == JFileChooser.CANCEL_OPTION) System.exit(-1);
+                defaultFile = cc.fc.getSelectedFile();
+            }
             def(false);
         }
+        csv.open(defaultFile);
+        cc.fc.setCurrentDirectory(new File(defaultFile.toString().substring(0, defaultFile.toString().lastIndexOf("\\")))); // reset base directory
         branch = csv.getTopLevelBranch(); // this has to go here so the sbPane constructor doesnt scream at me
-        cc = new ComponentContainer(csv);
         cl = new ComponentL(cc);
         dl = new DocumentL(cc, autosaveOn);
         al = new CaretL(cc);
         ml = new MouseL(this);
         cc.mmBar = new MainMenuBar(this, autosaveOn);
-        cc.locBar = new LocationBar(defaultFilename, this);
+        cc.locBar = new LocationBar(defaultFile.toString().substring(defaultFile.toString().lastIndexOf("\\") + 1), this);
         cc.brBut = new BottomRedirectButton(this);
         cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/22/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
@@ -188,7 +193,8 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
 
-    // TODOST - SHOW THE SUBBRANCH IN LOCBAR (display())
+
+    // TODOMT - MIGRATE TO USING JSPLITPANE FOR THE SIDEBAR/PRIMARY WINDOW?
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
     /**
@@ -212,6 +218,9 @@ public class KTOJF extends JFrame implements ActionListener {
                             case "Save": // save case
                                 save();
                                 break;
+                            case "Svas": // save as case
+                                saveAs();
+                                break;
                             case "Open": // open case
                                 if(saveAlert()) break;
                                 open();
@@ -219,10 +228,6 @@ public class KTOJF extends JFrame implements ActionListener {
                             case "New":  // create case
                                 if(saveAlert()) break;
                                 fnew();
-                                break;
-                            case "Dir": // directory change case
-                                if(saveAlert()) break;
-                                dir();
                                 break;
                             case "Def": // default save case 
                                 def(true);
@@ -305,6 +310,38 @@ public class KTOJF extends JFrame implements ActionListener {
             branch.set(cc.sbPane.getButtonText().indexOf(activeSubbranch), finStr);
         } catch(Exception e) {} // fail silently
         finally { cc.csv.save(); } // actually save regardless of whether the formatting was successful
+    }
+
+    // TODOST - CONSOLIDATE
+
+    /**
+     * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
+     */
+    private void saveAs() {
+        try {
+            // process regexes in one line because why not
+            String tbText = cc.ptPane.getDocument().getText(0, cc.ptPane.getDocument().getLength()).replaceAll("\n", "\\\\n")
+                                        .replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[").replaceAll("\\]", "\\\\]");
+            // format and set to arraylist
+            String finStr = activeSubbranch + "[" + tbText + "]";
+            branch.set(cc.sbPane.getButtonText().indexOf(activeSubbranch), finStr);
+        } catch(Exception e) {} // fail silently
+        finally { 
+            // gets the filename
+            int ret = cc.fc.showOpenDialog(this);
+            if(ret == JFileChooser.CANCEL_OPTION) return;
+            File file = cc.fc.getSelectedFile();
+            // immediately exits if user pressed exit on the dialog
+            if(file == null) return;
+            // display warning when overwriting
+            if(file.exists()) {
+                int result = JOptionPane.showConfirmDialog(this, "You are overwriting a file! Are you sure you want to continue?", "Overwrite Warning", JOptionPane.YES_NO_OPTION);
+                if(result == JOptionPane.NO_OPTION) return;
+            } else cc.csv.create(file);
+            cc.csv.saveAs(file);
+            cc.fc = new JFileChooser(file.toString().substring(0, defaultFile.toString().lastIndexOf("\\"))); 
+            cc.locBar.reset(file.toString().substring(file.toString().lastIndexOf("\\") + 1));
+        } // actually save regardless of whether the formatting was successful
     }
     
 
@@ -424,7 +461,9 @@ public class KTOJF extends JFrame implements ActionListener {
      */
     private void open() {
         // gets the filename
-        String file = input("filename", "Open File");
+        int ret = cc.fc.showOpenDialog(this);
+        if(ret == JFileChooser.CANCEL_OPTION) return;
+        File file = cc.fc.getSelectedFile();
         // immediately exits if user pressed exit on the dialog
         if(file == null) return;
         // display error message if the file could not be opened
@@ -432,10 +471,11 @@ public class KTOJF extends JFrame implements ActionListener {
             error("filename");
             return;
         }
+        cc.fc = new JFileChooser(file.toString().substring(0, defaultFile.toString().lastIndexOf("\\")));
 
         // reset textbox, location bar, branch location, and top-level indicator
         cc.ptPane.setText("");
-        cc.locBar.reset(file);
+        cc.locBar.reset(file.toString().substring(file.toString().lastIndexOf("\\") + 1));
         branch = cc.csv.getTopLevelBranch();
         isTopLevel = true;
         
@@ -453,7 +493,9 @@ public class KTOJF extends JFrame implements ActionListener {
      */
     private void fnew() {
         // gets the filename
-        String file = input("filename", "Open File");
+        int ret = cc.fc.showOpenDialog(this);
+        if(ret == JFileChooser.CANCEL_OPTION) return;
+        File file = cc.fc.getSelectedFile();
         // immediately exits if user pressed exit on the dialog
         if(file == null) return;
         // display error message if the file could not be created
@@ -461,13 +503,14 @@ public class KTOJF extends JFrame implements ActionListener {
             error("filename");
             return;
         }
+        cc.fc = new JFileChooser(file.toString().substring(0, defaultFile.toString().lastIndexOf("\\")));
 
         // opens the new file
         cc.csv.open(file);
 
         // reset textbox, location bar, branch location, and top-level indicator
         cc.ptPane.setText("");
-        cc.locBar.reset(file);
+        cc.locBar.reset(file.toString().substring(file.toString().lastIndexOf("\\") + 1));
         branch = cc.csv.getTopLevelBranch();
         isTopLevel = true;
         
@@ -481,36 +524,13 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
     /**
-     * Changes the active working directory.
-     */
-    private void dir() {
-        // gets the directory name
-        String newDir = input("directory name", "Change Directory");
-        // immediately exits if user pressed exit on the dialog
-        if(newDir == null) return;
-        // display error message if the directory does not exist
-        if(!(new File(newDir).exists())) {
-            error("directory");
-            return;
-        }
-        
-        // replace backslashes with forward slashes for Java String formatting
-        newDir = newDir.replaceAll("\\\\", "/");
-        // ensure the path ends in a forward slash
-        if(newDir.charAt(newDir.length() - 1) != '/') newDir += '/';
-        // set the working directory in the csvManager
-        cc.csv.setDirectory(newDir);
-    }
-
-
-    /**
      * Saves current options to default.
      */
     private void def(boolean ask) {
         try {
             String sv;
             if(ask) {
-                Object[] options = {"Directory", "Filename", "L&F", "Autosave", "All"};
+                Object[] options = {"File", "L&F", "Autosave", "All"};
                 sv = (String) JOptionPane.showInputDialog(this, "Save default:", "Save Default Settings", JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
                 if(sv == null) return;
             } else sv = "";
@@ -518,11 +538,8 @@ public class KTOJF extends JFrame implements ActionListener {
             PrintWriter pw = new PrintWriter(new FileWriter("KTOJF.ini"));
             pw.println("[Options]");
 
-            if(sv.equals("Directory") || sv.equals("All")) pw.println("defaultDirectory=" + cc.csv.getDirectory());
-            else pw.println("defaultDirectory=" + defaultDirectory);
-
-            if(sv.equals("Filename") || sv.equals("All")) pw.println("defaultFilename=" + cc.csv.getF());
-            else pw.println("defaultFilename=" + defaultFilename);
+            if(sv.equals("File") || sv.equals("All")) pw.println("defaultFilePath=" + cc.csv.getF());
+            else pw.println("defaultFilePath=" + defaultFile);
 
             pw.println("lookAndFeel=" + lookAndFeel); // there's no option to change L&F yet
 
@@ -828,8 +845,9 @@ public class KTOJF extends JFrame implements ActionListener {
      * Debug method.
      */
     private void debug() {
-        System.out.println(cc.botBar.getBounds());
-        System.out.println(cc.locBar.getBounds());
+        JFileChooser fc = new JFileChooser();
+        fc.showOpenDialog(this);
+        System.out.println(fc.getSelectedFile());
     }
 
 
