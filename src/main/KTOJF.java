@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.3.0
+ * @version 0.3.1
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -35,7 +35,7 @@ public class KTOJF extends JFrame implements ActionListener {
     // TEMP
     private String lookAndFeel;
     private File defaultFile;
-    private static final String version = "0.3.0";
+    private static final String version = "0.3.1";
     private static final String releaseVer = "beta";
 
 
@@ -75,7 +75,7 @@ public class KTOJF extends JFrame implements ActionListener {
         // Set autosave to refresh automatically
         EventQueue.invokeLater(new Runnable() { public void run() {
             Timer timer = new Timer(Constants.GeneralConstants.AUTOSAVEREFRESH, new ActionListener() { 
-                public void actionPerformed(ActionEvent e) { if(dl.getSave()) save(); }
+                public void actionPerformed(ActionEvent e) { if(dl.getSave()) save(false); }
             });
             timer.start();
         }});
@@ -147,7 +147,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFile.toString().substring(defaultFile.toString().lastIndexOf("\\") + 1), this);
         cc.brBut = new BottomRedirectButton(this);
-        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/22/2023 build | Figure out what else to put here!", this);
+        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/25/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
         cc.ptPane = new PrimaryTextPane("", dl, al);
@@ -216,10 +216,10 @@ public class KTOJF extends JFrame implements ActionListener {
                     case "FILE":
                         switch(command.substring(5)) {
                             case "Save": // save case
-                                save();
+                                save(false);
                                 break;
                             case "Svas": // save as case
-                                saveAs();
+                                save(true);
                                 break;
                             case "Open": // open case
                                 if(saveAlert()) break;
@@ -300,24 +300,7 @@ public class KTOJF extends JFrame implements ActionListener {
     /**
      * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
      */
-    private void save() {
-        try {
-            // process regexes in one line because why not
-            String tbText = cc.ptPane.getDocument().getText(0, cc.ptPane.getDocument().getLength()).replaceAll("\n", "\\\\n")
-                                        .replaceAll(",", "\\\\,").replaceAll("\\[", "\\\\[").replaceAll("\\]", "\\\\]");
-            // format and set to arraylist
-            String finStr = activeSubbranch + "[" + tbText + "]";
-            branch.set(cc.sbPane.getButtonText().indexOf(activeSubbranch), finStr);
-        } catch(Exception e) {} // fail silently
-        finally { cc.csv.save(); } // actually save regardless of whether the formatting was successful
-    }
-
-    // TODOST - CONSOLIDATE
-
-    /**
-     * Saves the current {@link PrimaryTextPane} to the active {@code branch}.
-     */
-    private void saveAs() {
+    private void save(boolean saveAs) {
         try {
             // process regexes in one line because why not
             String tbText = cc.ptPane.getDocument().getText(0, cc.ptPane.getDocument().getLength()).replaceAll("\n", "\\\\n")
@@ -327,20 +310,23 @@ public class KTOJF extends JFrame implements ActionListener {
             branch.set(cc.sbPane.getButtonText().indexOf(activeSubbranch), finStr);
         } catch(Exception e) {} // fail silently
         finally { 
-            // gets the filename
-            int ret = cc.fc.showOpenDialog(this);
-            if(ret == JFileChooser.CANCEL_OPTION) return;
-            File file = cc.fc.getSelectedFile();
-            // immediately exits if user pressed exit on the dialog
-            if(file == null) return;
-            // display warning when overwriting
-            if(file.exists()) {
-                int result = JOptionPane.showConfirmDialog(this, "You are overwriting a file! Are you sure you want to continue?", "Overwrite Warning", JOptionPane.YES_NO_OPTION);
-                if(result == JOptionPane.NO_OPTION) return;
-            } else cc.csv.create(file);
-            cc.csv.saveAs(file);
-            cc.fc = new JFileChooser(file.toString().substring(0, defaultFile.toString().lastIndexOf("\\"))); 
-            cc.locBar.reset(file.toString().substring(file.toString().lastIndexOf("\\") + 1));
+            if(!saveAs) cc.csv.save(cc.csv.getF()); 
+            else {
+                // gets the filename
+                int ret = cc.fc.showOpenDialog(this);
+                if(ret == JFileChooser.CANCEL_OPTION) return;
+                File file = cc.fc.getSelectedFile();
+                // immediately exits if user pressed exit on the dialog
+                if(file == null) return;
+                // display warning when overwriting
+                if(file.exists()) {
+                    int result = JOptionPane.showConfirmDialog(this, "You are overwriting a file! Are you sure you want to continue?", "Overwrite Warning", JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.NO_OPTION) return;
+                } else cc.csv.create(file);
+                cc.csv.save(file);
+                cc.fc = new JFileChooser(file.toString().substring(0, defaultFile.toString().lastIndexOf("\\"))); 
+                cc.locBar.reset(file.toString().substring(file.toString().lastIndexOf("\\") + 1));
+            }
         } // actually save regardless of whether the formatting was successful
     }
     
@@ -443,6 +429,7 @@ public class KTOJF extends JFrame implements ActionListener {
         // update location bar
         while(true) if(cc.locBar.directoryUp().equals("@")) break;
         branch = cc.csv.getTopLevelBranch();
+        isTopLevel = true;
         
         // create new SidebarPane and update SidebarScrollPane
         cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
@@ -584,7 +571,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.ssPane.setViewportView(cc.sbPane);
 
         // save accordingly
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     }
 
@@ -665,15 +652,17 @@ public class KTOJF extends JFrame implements ActionListener {
         target.update(newName, false);
 
         // change target key
-        if(wasFavorited) cc.csv.changeKey(branchTarget.substring(2), newName.substring(2));
-        else cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
-        // FIXMEST - renaming a redirect to an existing branch name overwrites the ENTIRE existing one
-        // have it show the user a dialogue whether they want to rename and overwrite or just change the redirect
+        int overwrite = JOptionPane.YES_OPTION;
+        if(cc.csv.exists(newName.replaceAll("@", ""))) overwrite = JOptionPane.showConfirmDialog(this, "You are overwriting an existing redirect! Continue?", "Confirm Overwrite", JOptionPane.YES_NO_OPTION);
+        if(overwrite == JOptionPane.YES_OPTION) {
+            if(wasFavorited) cc.csv.changeKey(branchTarget.substring(2), newName.substring(2));
+            else cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
+        }
         
         // change all references to target key
         branchTarget = branchTarget.replaceAll("\\\\", "\\\\\\\\");
         newName = newName.replaceAll("\\\\", "\\\\\\\\");
-        cc.csv.changeAllRefs(branchTarget, newName);
+        if(overwrite == JOptionPane.YES_OPTION) cc.csv.changeAllRefs(branchTarget, newName);
 
         // update key in active branch
         int idx = cc.sbPane.getButtonText().indexOf(branchTarget);
@@ -690,7 +679,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.ssPane.setViewportView(cc.sbPane);
 
         // save
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     }
 
@@ -731,7 +720,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.ssPane.setViewportView(cc.sbPane);
 
         // save
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     }
 
@@ -762,7 +751,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.ssPane.setViewportView(cc.sbPane);
 
         // save
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     }
 
@@ -805,7 +794,7 @@ public class KTOJF extends JFrame implements ActionListener {
         target.setEnabled(targetStatus);
 
         // save
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     } 
 
@@ -836,7 +825,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.ssPane.setViewportView(cc.sbPane);
 
         // save
-        if(autosaveOn) save();
+        if(autosaveOn) save(false);
         else cc.csv.setSaved(false);
     }
 

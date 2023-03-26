@@ -7,7 +7,7 @@ import java.util.*;
  * {@code CSVManager} is a class containing methods to handle the comma-separated value files used to store KTO data in the long term.
  * 
  * @author Christian Azinn
- * @version 2.0
+ * @version 2.1
  * @since 0.0.1
  */
 public class CSVManager {
@@ -107,47 +107,14 @@ public class CSVManager {
 
 
     /**
-     * Saves the active {@code TreeMap<String, ArrayList<String>>} to the currently active file.
+     * Saves the active {@code TreeMap<String, ArrayList<String>>} to a file.
      * @return whether or not the file write was successful
      */
-    public boolean save() {
-        try {
-            // initialize filewriter
-            PrintWriter pw = new PrintWriter(new FileWriter(activeFile));
-
-            // iterate through each key in the active csv
-            for(String key : activeCsv.keySet()) {
-                // write the key and set up arraylist for value
-                pw.print(key + ",");
-                ArrayList<String> values = activeCsv.get(key);
-
-                // iterate through using a regular for loop so commas can be controlled
-                for(int i = 0; i < values.size(); i++) {
-                    pw.print(values.get(i));
-                    if(i != values.size() - 1) pw.print(",");
-                }
-
-                // can't forget the newline
-                pw.println();
-            }
-            // flush and return
-            pw.close();
-            this.isSaved = true;
-            return true;
-        }  catch(Exception e) { return false; }
-    }
-
-    // TODOST - CONSOLIDATE
-    
-    /**
-     * Saves the active {@code TreeMap<String, ArrayList<String>>} to another file.
-     * @return whether or not the file write was successful
-     */
-    public boolean saveAs(File file) {
+    public boolean save(File file) {
         try {
             // initialize filewriter
             PrintWriter pw = new PrintWriter(new FileWriter(file));
-            this.activeFile = file;
+            activeFile = file;
 
             // iterate through each key in the active csv
             for(String key : activeCsv.keySet()) {
@@ -302,6 +269,16 @@ public class CSVManager {
             this.isSaved = false;
             return true;
         } catch(Exception e) { return false; }
+    }
+
+
+    /**
+     * Returns whether or not the {@code TreeMap<String, ArrayList<String>>} contains a {@code key}.
+     * @param key the key to search for
+     * @return whether or not the given key exists
+     */
+    public boolean exists(String key) {
+        return activeCsv.containsKey(key);
     }
 
 
