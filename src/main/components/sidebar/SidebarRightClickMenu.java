@@ -1,6 +1,6 @@
 package components.sidebar;
 
-import util.Constants;
+import components.menu.MenuBase;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -9,7 +9,7 @@ import java.awt.event.*;
  * {@code SidebarRightClickMenu} is a class to create a right-click menu for an {@link SidebarButton}.
  * 
  * @author Christian Azinn
- * @version 0.6
+ * @version 0.7
  * @since 0.1.4
  */
 public class SidebarRightClickMenu extends JPopupMenu {
@@ -19,57 +19,33 @@ public class SidebarRightClickMenu extends JPopupMenu {
         
         if(isEnabled) {
             if(!isRedirect) {
-                JMenuItem copyItem = new JMenuItem("Copy...");
-                copyItem.getAccessibleContext().setAccessibleDescription("Copies this subbranch.");
-                copyItem.setFont(Constants.FontConstants.FFONT);
-                copyItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+                JMenuItem copyItem = MenuBase.newButton("Copy...");
+                MenuBase.format(copyItem, prefix ,"Copies this subbranch.", "Copy", a);
                 add(copyItem);
-                copyItem.setActionCommand(prefix + "Copy");
-                copyItem.addActionListener(a);
             }
 
-            JMenuItem renameItem = new JMenuItem("Rename...");
-            renameItem.getAccessibleContext().setAccessibleDescription("Renames this subbranch.");
-            renameItem.setFont(Constants.FontConstants.FFONT);
-            renameItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+            JMenuItem renameItem = MenuBase.newButton("Rename...");
+            MenuBase.format(renameItem, prefix, "Renames this subbranch.", "Rnme", a);
             add(renameItem);
-            renameItem.setActionCommand(prefix + "Rnme");
-            renameItem.addActionListener(a);
             
-            JMenuItem deleteItem = new JMenuItem("Delete...");
-            deleteItem.getAccessibleContext().setAccessibleDescription("Deletes this subbranch.");
-            deleteItem.setFont(Constants.FontConstants.FFONT);
-            deleteItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+            JMenuItem deleteItem = MenuBase.newButton("Delete...");
+            MenuBase.format(deleteItem, prefix, "Deletes this subbranch.", "Delt", a);
             add(deleteItem);
-            deleteItem.setActionCommand(prefix + "Delt");
-            deleteItem.addActionListener(a);
             
             String favorite;
             if(isFavorited) favorite = "Unfavorite...";
             else favorite = "Favorite...";
-            JMenuItem favoriteItem = new JMenuItem(favorite);
-            favoriteItem.getAccessibleContext().setAccessibleDescription("Toggles this subbranch's favorite status.");
-            favoriteItem.setFont(Constants.FontConstants.FFONT);
-            favoriteItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+            JMenuItem favoriteItem = MenuBase.newButton(favorite);
+            MenuBase.format(favoriteItem, prefix, "Toggles this subbranch's favorite status.", "Fvrt", a);
             add(favoriteItem);
-            favoriteItem.setActionCommand(prefix + "Fvrt");
-            favoriteItem.addActionListener(a);
 
-            JMenuItem deactivateItem = new JMenuItem("Deactivate...");
-            deactivateItem.getAccessibleContext().setAccessibleDescription("Deactivates this button.");
-            deactivateItem.setFont(Constants.FontConstants.FFONT);
-            deactivateItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+            JMenuItem deactivateItem = MenuBase.newButton("Deactivate...");
+            MenuBase.format(deactivateItem, prefix, "Deactivates this button.", "Dacv", a);
             add(deactivateItem);
-            deactivateItem.setActionCommand(prefix + "Dacv");
-            deactivateItem.addActionListener(a);
         } else {
-            JMenuItem activateItem = new JMenuItem("Activate...");
-            activateItem.getAccessibleContext().setAccessibleDescription("Activates this button.");
-            activateItem.setFont(Constants.FontConstants.FFONT);
-            activateItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+            JMenuItem activateItem = MenuBase.newButton("Activate...");
+            MenuBase.format(activateItem, prefix, "Activates this button.", "Actv", a);
             add(activateItem);
-            activateItem.setActionCommand(prefix + "Actv");
-            activateItem.addActionListener(a);
         }
     }
 }

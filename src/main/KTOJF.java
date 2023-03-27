@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.3.1
+ * @version 0.3.2
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -35,7 +35,7 @@ public class KTOJF extends JFrame implements ActionListener {
     // TEMP
     private String lookAndFeel;
     private File defaultFile;
-    private static final String version = "0.3.1";
+    private static final String version = "0.3.2";
     private static final String releaseVer = "beta";
 
 
@@ -121,6 +121,7 @@ public class KTOJF extends JFrame implements ActionListener {
         }
     }
 
+
     /**
      * Initializes all components.
      */
@@ -193,7 +194,6 @@ public class KTOJF extends JFrame implements ActionListener {
 
 
 
-
     // TODOMT - MIGRATE TO USING JSPLITPANE FOR THE SIDEBAR/PRIMARY WINDOW?
     // TODOLT - FAILSAFES FOR BAD INFO (improperly formatted files, improper settings, etc)
 
@@ -243,6 +243,18 @@ public class KTOJF extends JFrame implements ActionListener {
                                 error("menu option");
                                 break;
                         }
+                        break;
+                    case "BRCH":
+                        switch(command.substring(5)) {
+                            case "Aval":
+                                break;
+                            case "Dval":
+                                break;
+                            case "Ufal":
+                                break;
+                            case "Rsal":
+                                break;
+                        } // TODOST - implement things like activate/deactivate all, unfavorite all, reset entire branch
                         break;
                     default:
                         error("menu option");
@@ -313,7 +325,7 @@ public class KTOJF extends JFrame implements ActionListener {
             if(!saveAs) cc.csv.save(cc.csv.getF()); 
             else {
                 // gets the filename
-                int ret = cc.fc.showOpenDialog(this);
+                int ret = cc.fc.showSaveDialog(this);
                 if(ret == JFileChooser.CANCEL_OPTION) return;
                 File file = cc.fc.getSelectedFile();
                 // immediately exits if user pressed exit on the dialog
@@ -829,6 +841,29 @@ public class KTOJF extends JFrame implements ActionListener {
         else cc.csv.setSaved(false);
     }
 
+
+    /**
+     * Activates or deactivates all buttons in the current branch.
+     */
+    private void activeAll(boolean targetStatus) {
+        // TODOST - IMPLEMENT
+    }
+
+    
+    /**
+     * Unfavorites all favorited buttons in the current branch.
+     */
+    private void unfavoriteAll() {
+        // TODOST - IMPLEMENT
+    }
+
+
+    /**
+     * Deletes all buttons/subbranches in the current branch.
+     */
+    private void resetBranch() {
+        // TODOST - IMPLEMENT
+    }
 
     /**
      * Debug method.

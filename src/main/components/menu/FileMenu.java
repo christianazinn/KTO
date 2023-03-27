@@ -1,91 +1,54 @@
 package components.menu;
 
-import util.Constants;
-
 import javax.swing.*;
 import java.awt.event.*;
 
 /**
- * {@code FileMenu} is a class to create a {@code JMenu} containing File-related options for the {@link MainMenuBar} to use.
+ * {@code FileMenu} is a class to create a {@code JMenu} containing file-related options for the {@link MainMenuBar} to use.
  * 
  * @author Christian Azinn
- * @version 0.7
+ * @version 0.8
  * @since 0.0.2
  */
-public class FileMenu extends JMenu {
+public class FileMenu extends MenuBase {
     public FileMenu(ActionListener a, boolean autosaveOn) {
         // Create a JMenu with name "File" and set its AccessibleDescription
-        super("File");
-        String prefix = "#FILE";
+        super("File", "#FILE", a);
         getAccessibleContext().setAccessibleDescription("Menu for file interactions.");
 
         // Toggle autosave
-        JMenuItem autosaveItem = new JRadioButtonMenuItem("Autosave");
-        autosaveItem.setSelected(autosaveOn);
-        autosaveItem.getAccessibleContext().setAccessibleDescription("Toggles autosave.");
-        autosaveItem.setFont(Constants.FontConstants.FFONT);
-        autosaveItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem autosaveItem = newRadioButton("Autosave", autosaveOn);
+        format(autosaveItem, "Toggles autosave.", "Auto");
         add(autosaveItem);
-        autosaveItem.setActionCommand(prefix + "Auto");
-        autosaveItem.addActionListener(a);
 
         // Save file
-        JMenuItem saveItem = new JMenuItem("Save...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/save.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        saveItem.getAccessibleContext().setAccessibleDescription("Saves the current file.");
-        saveItem.setFont(Constants.FontConstants.FFONT);
-        saveItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem saveItem = newButton("Save...", "img/save.png");
+        format(saveItem, "Saves the current file.", "Save");
         add(saveItem);
-        saveItem.setActionCommand(prefix + "Save");
-        saveItem.addActionListener(a);
         
-        JMenuItem saveAsItem = new JMenuItem("Save As...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/save.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        saveAsItem.getAccessibleContext().setAccessibleDescription("Saves the current file under another name.");
-        saveAsItem.setFont(Constants.FontConstants.FFONT);
-        saveAsItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        // Save as file
+        JMenuItem saveAsItem = newButton("Save As...", "img/save.png");
+        format(saveAsItem, "Saves the current file under another name.", "Svas");
         add(saveAsItem);
-        saveAsItem.setActionCommand(prefix + "Svas");
-        saveAsItem.addActionListener(a);
 
         // Open file
-        JMenuItem openItem = new JMenuItem("Open...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/folder.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        openItem.getAccessibleContext().setAccessibleDescription("Opens a new file.");
-        openItem.setFont(Constants.FontConstants.FFONT);
-        openItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem openItem = newButton("Open...", "img/folder.png");
+        format(openItem, "Opens a new file.", "Open");
         add(openItem);
-        openItem.setActionCommand(prefix + "Open");
-        openItem.addActionListener(a);
 
         // New file
-        JMenuItem newItem = new JMenuItem("New...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/new.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        newItem.getAccessibleContext().setAccessibleDescription("Creates a new file.");
-        newItem.setFont(Constants.FontConstants.FFONT);
-        newItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem newItem = newButton("New...", "img/new.png");
+        format(newItem, "Creates a new file.", "New");
         add(newItem);
-        newItem.setActionCommand(prefix + "New");
-        newItem.addActionListener(a);
 
         // Save defaults
-        JMenuItem defaultItem = new JMenuItem("Save Defaults...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/empty.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        defaultItem.getAccessibleContext().setAccessibleDescription("Saves active settings to default.");
-        defaultItem.setFont(Constants.FontConstants.FFONT);
-        defaultItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem defaultItem = newButton("Save Defaults...");
+        format(defaultItem, "Saves active settings to default", "Def");
         add(defaultItem);
-        defaultItem.setActionCommand(prefix + "Def");
-        defaultItem.addActionListener(a);
 
         // Debug
-        JMenuItem testItem = new JMenuItem("Debug...", new ImageIcon(new ImageIcon(ClassLoader.getSystemResource("img/empty.png"))
-                                        .getImage().getScaledInstance(Constants.GraphicsConstants.ICONSIZE, Constants.GraphicsConstants.ICONSIZE, java.awt.Image.SCALE_SMOOTH)));
-        testItem.getAccessibleContext().setAccessibleDescription("Does some debugging things.");
-        testItem.setFont(Constants.FontConstants.FFONT);
-        testItem.setPreferredSize(Constants.GraphicsConstants.MENUBSIZE);
+        JMenuItem testItem = newButton("Debug...");
+        format(testItem, "Does some debugging things.", "Dbug");
         add(testItem);
-        testItem.setActionCommand(prefix + "Dbug");
-        testItem.addActionListener(a);
     }
 }

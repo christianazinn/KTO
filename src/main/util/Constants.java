@@ -6,7 +6,7 @@ import java.awt.*;
  * {@code Constants} is a container class for all constants, each individually categorized in their own class.
  * 
  * @author Christian Azinn
- * @version 0.7
+ * @version 0.8
  * @since 0.0.2
  */
 public class Constants {
@@ -74,10 +74,11 @@ public class Constants {
      * {@code GeneralConstants} is a container class for generic constants that don't fall under the other constant classes.
      * 
      * @author Christian Azinn
-     * @version 0.1
+     * @version 0.2
      * @since 0.2.0
      */
     public static class GeneralConstants {
         public static final int AUTOSAVEREFRESH = 1000; // ms
+        public static final String EMPTYICONPATH = "img/empty.png";
     }
 }
