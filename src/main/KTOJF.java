@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.3.2
+ * @version 0.3.3
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -35,7 +35,7 @@ public class KTOJF extends JFrame implements ActionListener {
     // TEMP
     private String lookAndFeel;
     private File defaultFile;
-    private static final String version = "0.3.2";
+    private static final String version = "0.3.3";
     private static final String releaseVer = "beta";
 
 
@@ -247,12 +247,16 @@ public class KTOJF extends JFrame implements ActionListener {
                     case "BRCH":
                         switch(command.substring(5)) {
                             case "Aval":
+                                activateAll(true);
                                 break;
                             case "Dval":
+                                activateAll(false);
                                 break;
                             case "Ufal":
+                                unfavoriteAll();
                                 break;
                             case "Rsal":
+                                resetBranch();
                                 break;
                         } // TODOST - implement things like activate/deactivate all, unfavorite all, reset entire branch
                         break;
@@ -659,17 +663,18 @@ public class KTOJF extends JFrame implements ActionListener {
             branchTarget = "#" + branchTarget;
             newName = "#" + newName;
         }
-
-        // update button name
-        target.update(newName, false);
-
+        
         // change target key
         int overwrite = JOptionPane.YES_OPTION;
-        if(cc.csv.exists(newName.replaceAll("@", ""))) overwrite = JOptionPane.showConfirmDialog(this, "You are overwriting an existing redirect! Continue?", "Confirm Overwrite", JOptionPane.YES_NO_OPTION);
-        if(overwrite == JOptionPane.YES_OPTION) {
+        if(cc.csv.exists(newName.replaceAll("@", ""))) overwrite = JOptionPane.showConfirmDialog(this, "You are overwriting an existing redirect! Continue?\n(No will still rename the redirect. Cancel will stop entirely.)", "Confirm Overwrite", JOptionPane.YES_NO_CANCEL_OPTION);
+        if(overwrite == JOptionPane.CANCEL_OPTION) return;
+        else if(overwrite == JOptionPane.YES_OPTION) {
             if(wasFavorited) cc.csv.changeKey(branchTarget.substring(2), newName.substring(2));
             else cc.csv.changeKey(branchTarget.substring(1), newName.substring(1));
         }
+
+        // update button name
+        target.update(newName, false);
         
         // change all references to target key
         branchTarget = branchTarget.replaceAll("\\\\", "\\\\\\\\");
@@ -845,8 +850,24 @@ public class KTOJF extends JFrame implements ActionListener {
     /**
      * Activates or deactivates all buttons in the current branch.
      */
-    private void activeAll(boolean targetStatus) {
-        // TODOST - IMPLEMENT
+    private void activateAll(boolean targetStatus) {
+        for(int i = 0; i < branch.size(); i++) {
+            String str = branch.get(i), info;
+            int idx = CSVManager.findNotBackslashed(str, "[");
+            info = str.substring(idx);
+            str = str.substring(0, idx);
+            if(str.charAt(str.length() - 1) == '|' && targetStatus) str = str.substring(0, str.length() - 1);
+            else if(str.charAt(str.length() - 1) != '|' && !targetStatus) str += '|';
+            branch.set(i, str + info);
+        }
+
+        // create new SidebarPane and update SidebarScrollPane
+        cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
+        cc.ssPane.setViewportView(cc.sbPane);
+
+        // save
+        if(autosaveOn) save(false);
+        else cc.csv.setSaved(false);
     }
 
     
@@ -854,7 +875,20 @@ public class KTOJF extends JFrame implements ActionListener {
      * Unfavorites all favorited buttons in the current branch.
      */
     private void unfavoriteAll() {
-        // TODOST - IMPLEMENT
+        for(int i = 0; i < branch.size(); i++) {
+            String str = branch.get(i);
+            if(str.length() == 0 || str.charAt(0) != '#') break;
+            branch.set(i, str.substring(1));
+        }
+        Collections.sort(branch);
+
+        // create new SidebarPane and update SidebarScrollPane
+        cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
+        cc.ssPane.setViewportView(cc.sbPane);
+
+        // save
+        if(autosaveOn) save(false);
+        else cc.csv.setSaved(false);
     }
 
 
@@ -862,7 +896,15 @@ public class KTOJF extends JFrame implements ActionListener {
      * Deletes all buttons/subbranches in the current branch.
      */
     private void resetBranch() {
-        // TODOST - IMPLEMENT
+        branch.clear();
+
+        // create new SidebarPane and update SidebarScrollPane
+        cc.sbPane = new SidebarPane(branch, this, ml, isTopLevel);
+        cc.ssPane.setViewportView(cc.sbPane);
+
+        // save
+        if(autosaveOn) save(false);
+        else cc.csv.setSaved(false);
     }
 
     /**
