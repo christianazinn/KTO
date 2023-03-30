@@ -31,10 +31,12 @@ public class ComponentL implements ComponentListener {
         cc.locBar.setSize(new Dimension((int) newSize.width, Constants.GraphicsConstants.BARHEIGHT));
         cc.locBar.setLabelSize();
         cc.botBar.setBounds(0, (int) newSize.height - 76, (int) newSize.width, Constants.GraphicsConstants.BARHEIGHT);
-        cc.ssPane.setSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (int) newSize.height - Constants.GraphicsConstants.MENUBARHEIGHT - 2 * Constants.GraphicsConstants.BARHEIGHT - 39));
+        cc.ssPane.setSize(new Dimension(Constants.GraphicsConstants.SBWIDTH, (int) newSize.height - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
+        cc.ssPane.repaint();
         cc.psPane.setSize(new Dimension((int) newSize.width - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.height - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
         cc.ptPane.setSize(new Dimension((int) newSize.width - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.height - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
-    }
+        cc.pnPane.setSize(new Dimension((int) newSize.width - Constants.GraphicsConstants.SBWIDTH - 12, (int) newSize.height - Constants.GraphicsConstants.PSPVOFFSET * 4 - Constants.GraphicsConstants.BARHEIGHT));
+        }
     public void componentHidden(ComponentEvent e) {}
     public void componentMoved(ComponentEvent e) {}
     public void componentShown(ComponentEvent e) {}

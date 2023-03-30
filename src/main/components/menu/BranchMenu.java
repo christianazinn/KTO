@@ -15,25 +15,23 @@ public class BranchMenu extends MenuBase {
         super("Branch", "#BRCH", a);
         getAccessibleContext().setAccessibleDescription("Menu for branch interactions.");
 
-        // TODOST - ADD ICONS
-
         // Activate all
-        JMenuItem activateItem = newButton("Activate All...");
+        JMenuItem activateItem = newButton("Activate All...", "img/powerOn.png");
         format(activateItem, "Activates all buttons in the current branch.", "Aval");
         add(activateItem);
 
         // Deactivate all
-        JMenuItem deactivateItem = newButton("Deactivate All..."); 
+        JMenuItem deactivateItem = newButton("Deactivate All...", "img/powerOff.png"); 
         format(deactivateItem, "Deactivates all buttons in the current branch.", "Dval");
         add(deactivateItem);
 
         // Unfavorite all
-        JMenuItem unfavoriteItem = newButton("Unfavorite All...");
+        JMenuItem unfavoriteItem = newButton("Unfavorite All...", "img/unfavorite.png");
         format(unfavoriteItem, "Unfavorites all buttons in the current branch.", "Ufal");
         add(unfavoriteItem);
 
         // Delete all / reset branch to empty
-        JMenuItem resetItem = newButton("Delete All...");
+        JMenuItem resetItem = newButton("Delete All...", "img/garbage.png");
         format(resetItem, "Deletes all buttons in the current branch.", "Rsal");
         add(resetItem);
     }

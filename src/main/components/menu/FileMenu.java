@@ -27,7 +27,7 @@ public class FileMenu extends MenuBase {
         add(saveItem);
         
         // Save as file
-        JMenuItem saveAsItem = newButton("Save As...", "img/save.png");
+        JMenuItem saveAsItem = newButton("Save As...", "img/saveAs.png");
         format(saveAsItem, "Saves the current file under another name.", "Svas");
         add(saveAsItem);
 
@@ -42,12 +42,12 @@ public class FileMenu extends MenuBase {
         add(newItem);
 
         // Save defaults
-        JMenuItem defaultItem = newButton("Save Defaults...");
+        JMenuItem defaultItem = newButton("Save Defaults...", "img/saveDefaults.png");
         format(defaultItem, "Saves active settings to default", "Def");
         add(defaultItem);
 
         // Debug
-        JMenuItem testItem = newButton("Debug...");
+        JMenuItem testItem = newButton("Debug...", "img/bug.png");
         format(testItem, "Does some debugging things.", "Dbug");
         add(testItem);
     }

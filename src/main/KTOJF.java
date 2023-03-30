@@ -16,7 +16,7 @@ import java.io.*;
  * {@code KTOJF} is the main file of the KTO JFrame-based application. 
  * 
  * @author Christian Azinn
- * @version 0.3.3
+ * @version 0.3.4
  * @since 0.0.1
  */
 public class KTOJF extends JFrame implements ActionListener {
@@ -35,7 +35,7 @@ public class KTOJF extends JFrame implements ActionListener {
     // TEMP
     private String lookAndFeel;
     private File defaultFile;
-    private static final String version = "0.3.3";
+    private static final String version = "0.3.4";
     private static final String releaseVer = "beta";
 
 
@@ -148,7 +148,7 @@ public class KTOJF extends JFrame implements ActionListener {
         cc.mmBar = new MainMenuBar(this, autosaveOn);
         cc.locBar = new LocationBar(defaultFile.toString().substring(defaultFile.toString().lastIndexOf("\\") + 1), this);
         cc.brBut = new BottomRedirectButton(this);
-        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/25/2023 build | Figure out what else to put here!", this);
+        cc.botBar = new BottomBar(cc.brBut, "Running KTO ver " + version + " " + releaseVer + ", 03/30/2023 build | Figure out what else to put here!", this);
         cc.sbPane = new SidebarPane(branch, this, ml, true);
         cc.ssPane = new SidebarScrollPane(cc.sbPane);
         cc.ptPane = new PrimaryTextPane("", dl, al);
